@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A left (red) and right (blue) Joy-Con joined into one controller. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FF3C28"
+        android:pathData="M53,30 L42,30 A11,11 0 0 0 31,41 L31,67 A11,11 0 0 0 42,78 L53,78 Z" />
+    <path
+        android:fillColor="#0AB9E6"
+        android:pathData="M55,30 L66,30 A11,11 0 0 1 77,41 L77,67 A11,11 0 0 1 66,78 L55,78 Z" />
+    <path
+        android:fillColor="#2B2B2B"
+        android:pathData="M37,44 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0 Z" />
+    <path
+        android:fillColor="#2B2B2B"
+        android:pathData="M61,62 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0 Z" />
+</vector>

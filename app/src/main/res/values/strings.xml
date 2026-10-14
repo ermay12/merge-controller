@@ -1,0 +1,42 @@
+<resources>
+    <string name="app_name">Merge Controller</string>
+    <string name="app_subtitle">Combines a left and right Joy-Con into one virtual controller and hides the originals from other apps.</string>
+
+    <string name="section_shizuku">Shizuku</string>
+    <string name="shizuku_not_running">Shizuku is not running. Start it in the Shizuku app, then come back.</string>
+    <string name="shizuku_permission_needed">Merge Controller needs Shizuku permission.</string>
+    <string name="shizuku_permission_denied">Shizuku permission was denied. Allow Merge Controller in the Shizuku app.</string>
+    <string name="shizuku_ready">Connected (running as %1$s).</string>
+    <string name="grant_permission">Grant permission</string>
+
+    <string name="section_joycons">Joy-Cons</string>
+    <string name="joycon_left">Left</string>
+    <string name="joycon_right">Right</string>
+    <string name="joycon_merged">%1$s: merged and hidden (%2$s)</string>
+    <string name="joycon_connected">%1$s: connected</string>
+    <string name="joycon_missing">%1$s: not connected. Pair it in Bluetooth settings.</string>
+
+    <string name="section_virtual">Virtual controller</string>
+    <string name="merge_stopped">Stopped. The Joy-Cons work as separate controllers.</string>
+    <string name="merge_starting">Starting…</string>
+    <string name="merge_running">Running as “%1$s” (%2$s).</string>
+    <string name="merge_waiting">Running as “%1$s”. Waiting for the Joy-Cons to connect.</string>
+    <string name="start_merging">Start merging</string>
+    <string name="stop_merging">Stop merging</string>
+    <string name="nintendo_layout">Nintendo button layout</string>
+    <string name="nintendo_layout_hint">Off: face buttons map by position, like Android does for Joy-Cons (bottom button = A). On: they map by label (the button marked A = A).</string>
+
+    <string name="section_test">Input test</string>
+    <string name="test_hint">Press buttons while this screen is open. When merging, every event should come from “Merged Joy-Con Controller”.</string>
+    <string name="input_none">No controller input yet.</string>
+    <string name="input_from">From: %1$s</string>
+    <string name="input_held">Held: %1$s</string>
+    <string name="input_held_none">Held: none</string>
+    <string name="input_axes">Left stick   x %1$+.2f  y %2$+.2f\nRight stick  z %3$+.2f  rz %4$+.2f\nTriggers     L %5$.2f  R %6$.2f\nD-pad (hat)  x %7$+.0f  y %8$+.0f</string>
+
+    <string name="section_devices">Controllers visible to Android</string>
+    <string name="devices_none">None</string>
+    <string name="device_tag_virtual">  ← merged output</string>
+    <string name="device_tag_hidden">  ← hidden: sends no input</string>
+    <string name="devices_hint">Without root, Android still lists the original Joy-Cons, but while merging they send no input to any app.</string>
+</resources>
