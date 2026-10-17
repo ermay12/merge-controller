@@ -134,6 +134,12 @@ Merge Controller runs a small background service through Shizuku, with the same 
 
 For technical details and build instructions, see [BUILDING.md](BUILDING.md).
 
+## AI Disclaimer
+
+This app was completely vibecoded by Opus 5.5.
+
+I only provided design direction and testing.
+
 ## License
 
 Merge Controller is free software, licensed under the [GNU General Public License v3.0](LICENSE) or (at your option) any later version. You may use, study, share and modify it. If you distribute a modified version, you must release its source code under the same license.
