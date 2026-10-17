@@ -136,7 +136,7 @@ For technical details and build instructions, see [BUILDING.md](BUILDING.md).
 
 ## AI Disclaimer
 
-This app was completely vibecoded by Opus 5.5.
+This app was completely vibecoded with Opus 5.5.
 
 I only provided design direction and testing.
 
