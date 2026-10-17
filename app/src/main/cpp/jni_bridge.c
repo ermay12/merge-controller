@@ -31,3 +31,11 @@ Java_com_ermay12_mergecontroller_NativeMerger_status(JNIEnv *env, jclass clazz) 
     merger_status_json(buf, sizeof buf);
     return (*env)->NewStringUTF(env, buf);
 }
+
+JNIEXPORT jlong JNICALL
+Java_com_ermay12_mergecontroller_NativeMerger_awaitRumble(JNIEnv *env, jclass clazz, jint seq,
+                                                          jint timeout_ms) {
+    (void)env;
+    (void)clazz;
+    return (jlong)merger_await_rumble((uint32_t)seq, timeout_ms);
+}

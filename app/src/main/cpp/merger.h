@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,6 +11,11 @@ extern "C" {
 // Report face buttons by their Nintendo label (A = BUTTON_A) instead of by
 // position (bottom button = BUTTON_A, Android's default for Joy-Cons).
 #define MERGER_FLAG_NINTENDO_LAYOUT 0x1
+
+// Present the virtual controller as an Xbox Wireless Controller (name, IDs,
+// axis ranges and buttons) for games that only accept known controllers.
+// Read when merging starts; changing it requires a restart.
+#define MERGER_FLAG_XBOX_IDENTITY 0x4
 
 typedef struct {
     int flags;
@@ -31,6 +37,12 @@ void merger_set_flags(int flags);
 void merger_status_json(char *buf, size_t len);
 
 void merger_set_log_stderr(bool enabled);
+
+// Rumble that apps request through the virtual controller, encoded as
+// (strong_magnitude << 16) | weak_magnitude. Blocks until the value's sequence
+// number differs from `seq` or timeout_ms passes, then returns
+// ((uint64_t)sequence << 32) | value.
+uint64_t merger_await_rumble(uint32_t seq, int timeout_ms);
 
 #ifdef __cplusplus
 }

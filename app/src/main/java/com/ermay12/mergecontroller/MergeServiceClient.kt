@@ -9,9 +9,14 @@ import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import rikka.shizuku.Shizuku
+import kotlin.concurrent.thread
 
 /** Tracks Shizuku's state and talks to [MergeUserService]. All callbacks run on the main thread. */
-class MergeServiceClient(context: Context, private val onChanged: () -> Unit) {
+class MergeServiceClient(
+    context: Context,
+    private val currentFlags: () -> Int,
+    private val onChanged: () -> Unit,
+) {
 
     enum class ShizukuState { NOT_RUNNING, PERMISSION_NEEDED, PERMISSION_DENIED, READY }
 
@@ -28,9 +33,26 @@ class MergeServiceClient(context: Context, private val onChanged: () -> Unit) {
         private set
     var starting = false
         private set
+    var reconnecting = false
+        private set
 
     private var service: IMergeService? = null
     private var pendingStartFlags: Int? = null
+
+    // Shizuku's client library reuses one connection object per service and
+    // tears it down (dropping our ServiceConnection) if the removed service's
+    // death is reported, which can happen late or not at all. A bind made before
+    // that would be lost, so starts wait for the report or a timeout.
+    private var removing = false
+    private var startAfterRemoval: Int? = null
+    private val finishRemoval = Runnable {
+        removing = false
+        startAfterRemoval?.let {
+            startAfterRemoval = null
+            start(it)
+        }
+        onChanged()
+    }
 
     private val args = Shizuku.UserServiceArgs(ComponentName(appContext, MergeUserService::class.java))
         .daemon(true)
@@ -44,11 +66,17 @@ class MergeServiceClient(context: Context, private val onChanged: () -> Unit) {
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
+            // Posted, so it runs after the library has finished discarding the old connection.
             mainHandler.post {
                 service = null
                 status = null
                 starting = false
-                onChanged()
+                if (removing) {
+                    mainHandler.removeCallbacks(finishRemoval)
+                    finishRemoval.run()
+                } else {
+                    onChanged()
+                }
             }
         }
     }
@@ -69,13 +97,18 @@ class MergeServiceClient(context: Context, private val onChanged: () -> Unit) {
         Shizuku.addRequestPermissionResultListener(permissionResult, mainHandler)
     }
 
-    fun unregister() {
+    /**
+     * Detaches from the service. A merging service keeps running without the
+     * app; an idle one is ended if [endIdleService].
+     */
+    fun release(endIdleService: Boolean) {
         Shizuku.removeBinderReceivedListener(binderReceived)
         Shizuku.removeBinderDeadListener(binderDead)
         Shizuku.removeRequestPermissionResultListener(permissionResult)
+        mainHandler.removeCallbacks(finishRemoval)
         if (service != null && Shizuku.pingBinder()) {
-            // Detach only; the daemon keeps merging without the app.
-            runCatching { Shizuku.unbindUserService(args, connection, false) }
+            val remove = endIdleService && status?.running != true
+            runCatching { Shizuku.unbindUserService(args, connection, remove) }
         }
         service = null
     }
@@ -84,6 +117,12 @@ class MergeServiceClient(context: Context, private val onChanged: () -> Unit) {
 
     fun start(flags: Int) {
         error = null
+        if (removing) {
+            startAfterRemoval = flags
+            starting = true
+            onChanged()
+            return
+        }
         val s = service
         if (s != null) {
             startOn(s, flags)
@@ -99,13 +138,27 @@ class MergeServiceClient(context: Context, private val onChanged: () -> Unit) {
         onChanged()
     }
 
+    /** Stops merging. The idle service process stays up for a quick restart until [release]. */
     fun stop() {
-        service?.let { s -> runCatching { s.stop() } }
-        // Removing the service also ends its shell process.
-        runCatching { Shizuku.unbindUserService(args, connection, true) }
-        service = null
-        status = null
+        val s = service ?: return
+        runCatching { s.stop() }.onFailure { error = it.message }
+        refresh()
+    }
+
+    /** See [IMergeService.reconnectJoyCons]. Runs off the main thread because it blocks. */
+    fun reconnectJoyCons() {
+        val s = service ?: return
+        reconnecting = true
+        error = null
         onChanged()
+        thread(name = "reconnectJoyCons") {
+            val ok = runCatching { s.reconnectJoyCons() }.getOrDefault(false)
+            mainHandler.post {
+                reconnecting = false
+                if (!ok) error = appContext.getString(R.string.reconnect_failed)
+                refresh()
+            }
+        }
     }
 
     fun setFlags(flags: Int) {
@@ -128,7 +181,7 @@ class MergeServiceClient(context: Context, private val onChanged: () -> Unit) {
             else -> ShizukuState.PERMISSION_NEEDED
         }
         shizukuUid = if (shizukuState == ShizukuState.READY) Shizuku.getUid() else -1
-        if (shizukuState == ShizukuState.READY && service == null) {
+        if (shizukuState == ShizukuState.READY && service == null && !removing) {
             // Reattach to a merge left running by an earlier session; never spawns a new process.
             runCatching { Shizuku.peekUserService(args, connection) }
         }
@@ -138,11 +191,40 @@ class MergeServiceClient(context: Context, private val onChanged: () -> Unit) {
     private fun onConnected(binder: IBinder?) {
         if (binder == null || !binder.pingBinder()) return
         val s = IMergeService.Stub.asInterface(binder)
+        if (runCatching { s.buildTime() }.getOrNull() != BuildConfig.BUILD_TIME) {
+            replaceOutdatedService(s)
+            return
+        }
         service = s
         starting = false
         val flags = pendingStartFlags
         pendingStartFlags = null
         if (flags != null) startOn(s, flags) else refresh()
+    }
+
+    /**
+     * peekUserService() attaches to a daemon regardless of version, so after an
+     * update it can find one still running the old code. Restart it with the
+     * new code, resuming merging if it was on.
+     */
+    private fun replaceOutdatedService(old: IMergeService) {
+        val wasRunning = runCatching { MergeStatus.parse(old.status()).running }.getOrDefault(false)
+        Log.i(TAG, "replacing merge service from an older install (merging: $wasRunning)")
+        runCatching { old.stop() }
+        removeService()
+        val flags = pendingStartFlags ?: if (wasRunning) currentFlags() else null
+        pendingStartFlags = null
+        if (flags != null) start(flags) else onChanged()
+    }
+
+    /** Removes the connected service, which also ends its shell process. Only used to replace an outdated one. */
+    private fun removeService() {
+        runCatching { Shizuku.unbindUserService(args, connection, true) }
+        service = null
+        status = null
+        removing = true
+        // In case the old service's death is never reported.
+        mainHandler.postDelayed(finishRemoval, REMOVAL_TIMEOUT_MS)
     }
 
     private fun startOn(s: IMergeService, flags: Int) {
@@ -155,9 +237,6 @@ class MergeServiceClient(context: Context, private val onChanged: () -> Unit) {
         if (result != 0) {
             Log.w(TAG, "start failed ($result): ${status?.error}")
             error = status?.error?.ifEmpty { null } ?: "Start failed (error $result)"
-            runCatching { Shizuku.unbindUserService(args, connection, true) }
-            service = null
-            status = null
             onChanged()
         }
     }
@@ -171,5 +250,6 @@ class MergeServiceClient(context: Context, private val onChanged: () -> Unit) {
     companion object {
         private const val TAG = "MergeController"
         private const val PERMISSION_REQUEST_CODE = 1
+        private const val REMOVAL_TIMEOUT_MS = 3000L
     }
 }

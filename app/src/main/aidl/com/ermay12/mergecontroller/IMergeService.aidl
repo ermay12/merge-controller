@@ -14,4 +14,12 @@ interface IMergeService {
 
     // JSON: {running, flags, virtualPath, left, right, error}
     String status() = 4;
+
+    // BuildConfig.BUILD_TIME of the code this service is running.
+    long buildTime() = 5;
+
+    // Disconnects the Joy-Cons and recreates the virtual controller, so that when
+    // the Joy-Cons reconnect (a button press on each) it is listed before them.
+    // Blocks for up to a few seconds. Returns false if merging isn't running.
+    boolean reconnectJoyCons() = 6;
 }

@@ -20,14 +20,25 @@
     <string name="merge_stopped">Stopped. The Joy-Cons work as separate controllers.</string>
     <string name="merge_starting">Starting…</string>
     <string name="merge_running">Running as “%1$s” (%2$s).</string>
-    <string name="merge_waiting">Running as “%1$s”. Waiting for the Joy-Cons to connect.</string>
+    <string name="merge_waiting">Running as “%1$s”. Waiting for the Joy-Cons: press any button on each to connect it.</string>
     <string name="start_merging">Start merging</string>
     <string name="stop_merging">Stop merging</string>
     <string name="nintendo_layout">Nintendo button layout</string>
     <string name="nintendo_layout_hint">Off: face buttons map by position, like Android does for Joy-Cons (bottom button = A). On: they map by label (the button marked A = A).</string>
 
+    <string name="xbox_identity">Appear as an Xbox controller</string>
+    <string name="xbox_identity_hint">Uses the name, IDs and button layout of an Xbox Wireless Controller, so games that only accept known controllers (like Call of Duty: Mobile) recognize it. Changing this recreates the merged controller.</string>
+    <string name="rumble">Forward rumble to Joy-Cons</string>
+    <string name="rumble_hint">Rumble sent to the merged controller is passed on over Bluetooth: the strong motor to the left Joy-Con, the weak motor to the right.</string>
+    <string name="test_rumble">Test rumble</string>
+    <string name="order_first">Listed before the Joy-Cons, so games that use the first controller (like GTA: San Andreas) will pick it.</string>
+    <string name="order_after">Listed after the Joy-Cons. Games that use the first controller (like GTA: San Andreas) will ignore it. Reconnect the Joy-Cons to fix this.</string>
+    <string name="reconnecting">Disconnecting the Joy-Cons…</string>
+    <string name="reconnect_joycons">Reconnect Joy-Cons</string>
+    <string name="reconnect_failed">Couldn’t disconnect the Joy-Cons.</string>
+
     <string name="section_test">Input test</string>
-    <string name="test_hint">Press buttons while this screen is open. When merging, every event should come from “Merged Joy-Con Controller”.</string>
+    <string name="test_hint">Press buttons while this screen is open. When merging, every event should come from the merged controller.</string>
     <string name="input_none">No controller input yet.</string>
     <string name="input_from">From: %1$s</string>
     <string name="input_held">Held: %1$s</string>
@@ -36,7 +47,7 @@
 
     <string name="section_devices">Controllers visible to Android</string>
     <string name="devices_none">None</string>
-    <string name="device_tag_virtual">  ← merged output</string>
-    <string name="device_tag_hidden">  ← hidden: sends no input</string>
+    <string name="device_tag_virtual">"  ← merged output"</string>
+    <string name="device_tag_hidden">"  ← hidden: sends no input"</string>
     <string name="devices_hint">Without root, Android still lists the original Joy-Cons, but while merging they send no input to any app.</string>
 </resources>

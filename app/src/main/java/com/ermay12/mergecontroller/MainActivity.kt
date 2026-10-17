@@ -5,7 +5,9 @@ import android.content.SharedPreferences
 import android.hardware.input.InputManager
 import android.os.Bundle
 import android.os.Handler
+import android.os.CombinedVibration
 import android.os.Looper
+import android.os.VibrationEffect
 import android.util.Log
 import android.view.InputDevice
 import android.view.KeyEvent
@@ -32,6 +34,11 @@ class MainActivity : Activity(), InputManager.InputDeviceListener {
     private lateinit var mergeButton: Button
     private lateinit var errorText: TextView
     private lateinit var nintendoLayout: Switch
+    private lateinit var rumble: Switch
+    private lateinit var xboxIdentity: Switch
+    private lateinit var testRumbleButton: Button
+    private lateinit var orderStatus: TextView
+    private lateinit var reconnectButton: Button
     private lateinit var inputSource: TextView
     private lateinit var inputButtons: TextView
     private lateinit var inputAxes: TextView
@@ -60,6 +67,11 @@ class MainActivity : Activity(), InputManager.InputDeviceListener {
         mergeButton = findViewById(R.id.merge_button)
         errorText = findViewById(R.id.error_text)
         nintendoLayout = findViewById(R.id.nintendo_layout)
+        rumble = findViewById(R.id.rumble)
+        xboxIdentity = findViewById(R.id.xbox_identity)
+        testRumbleButton = findViewById(R.id.test_rumble)
+        orderStatus = findViewById(R.id.order_status)
+        reconnectButton = findViewById(R.id.reconnect_joycons)
         inputSource = findViewById(R.id.input_source)
         inputButtons = findViewById(R.id.input_buttons)
         inputAxes = findViewById(R.id.input_axes)
@@ -67,13 +79,25 @@ class MainActivity : Activity(), InputManager.InputDeviceListener {
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         inputManager = getSystemService(InputManager::class.java)
-        client = MergeServiceClient(this, ::render)
+        client = MergeServiceClient(this, ::mergeFlags, ::render)
 
         nintendoLayout.isChecked = prefs.getBoolean(PREF_NINTENDO_LAYOUT, false)
         nintendoLayout.setOnCheckedChangeListener { _, checked ->
             prefs.edit().putBoolean(PREF_NINTENDO_LAYOUT, checked).apply()
             client.setFlags(mergeFlags())
         }
+        xboxIdentity.isChecked = prefs.getBoolean(PREF_XBOX_IDENTITY, true)
+        xboxIdentity.setOnCheckedChangeListener { _, checked ->
+            prefs.edit().putBoolean(PREF_XBOX_IDENTITY, checked).apply()
+            client.setFlags(mergeFlags())
+        }
+        rumble.isChecked = prefs.getBoolean(PREF_RUMBLE, true)
+        rumble.setOnCheckedChangeListener { _, checked ->
+            prefs.edit().putBoolean(PREF_RUMBLE, checked).apply()
+            client.setFlags(mergeFlags())
+        }
+        testRumbleButton.setOnClickListener { testRumble() }
+        reconnectButton.setOnClickListener { client.reconnectJoyCons() }
         shizukuButton.setOnClickListener { client.requestPermission() }
         mergeButton.setOnClickListener {
             if (client.status?.running == true) client.stop() else client.start(mergeFlags())
@@ -96,7 +120,7 @@ class MainActivity : Activity(), InputManager.InputDeviceListener {
     }
 
     override fun onDestroy() {
-        client.unregister()
+        client.release(endIdleService = isFinishing)
         super.onDestroy()
     }
 
@@ -143,7 +167,27 @@ class MainActivity : Activity(), InputManager.InputDeviceListener {
         return true
     }
 
-    private fun mergeFlags() = if (nintendoLayout.isChecked) MergeStatus.FLAG_NINTENDO_LAYOUT else 0
+    private fun mergeFlags(): Int {
+        var flags = 0
+        if (nintendoLayout.isChecked) flags = flags or MergeStatus.FLAG_NINTENDO_LAYOUT
+        if (rumble.isChecked) flags = flags or MergeStatus.FLAG_RUMBLE
+        if (xboxIdentity.isChecked) flags = flags or MergeStatus.FLAG_XBOX_IDENTITY
+        return flags
+    }
+
+    /** Vibrates the merged controller through Android's API: each motor in turn, then both. */
+    private fun testRumble() {
+        val device = gameControllers().firstOrNull { MergeStatus.isMergedController(it) } ?: return
+        val manager = device.vibratorManager
+        val pulse = VibrationEffect.createOneShot(TEST_PULSE_MS, 255)
+        val steps = manager.vibratorIds.map { id ->
+            CombinedVibration.startParallel().addVibrator(id, pulse).combine()
+        } + CombinedVibration.createParallel(pulse)
+        steps.forEachIndexed { i, vibration ->
+            handler.postDelayed({ manager.vibrate(vibration) }, i * TEST_STEP_MS)
+        }
+        Log.i(TAG, "rumble test on ${device.name}: vibrators ${manager.vibratorIds.toList()}")
+    }
 
     private fun noteInputDevice(deviceId: Int) {
         if (deviceId == lastInputDeviceId) return
@@ -175,12 +219,15 @@ class MainActivity : Activity(), InputManager.InputDeviceListener {
         mergeStatus.text = when {
             client.starting -> getString(R.string.merge_starting)
             status != null && running && (status.left != null || status.right != null) ->
-                getString(R.string.merge_running, MergeStatus.VIRTUAL_DEVICE_NAME, status.virtualPath)
-            running -> getString(R.string.merge_waiting, MergeStatus.VIRTUAL_DEVICE_NAME)
+                getString(R.string.merge_running, status.virtualName, status.virtualPath)
+            status != null && running -> getString(R.string.merge_waiting, status.virtualName)
             else -> getString(R.string.merge_stopped)
         }
         mergeButton.setText(if (running) R.string.stop_merging else R.string.start_merging)
         mergeButton.isEnabled = client.shizukuState == ShizukuState.READY && !client.starting
+        val merged = controllers.firstOrNull { MergeStatus.isMergedController(it) }
+        testRumbleButton.isEnabled = running && merged != null
+        renderOrder(running, merged, controllers)
 
         val error = client.error ?: status?.error?.ifEmpty { null }
         errorText.text = error
@@ -191,14 +238,34 @@ class MainActivity : Activity(), InputManager.InputDeviceListener {
             getString(R.string.devices_none)
         } else {
             controllers.joinToString("\n") { device ->
-                val tag = when (device.name) {
-                    MergeStatus.VIRTUAL_DEVICE_NAME -> getString(R.string.device_tag_virtual)
-                    in hiddenNames -> getString(R.string.device_tag_hidden)
+                val tag = when {
+                    MergeStatus.isMergedController(device) -> getString(R.string.device_tag_virtual)
+                    device.name in hiddenNames -> getString(R.string.device_tag_hidden)
                     else -> ""
                 }
                 "• ${device.name}$tag"
             }
         }
+    }
+
+    /**
+     * Some games give player 1 to the gamepad with the lowest device ID, which
+     * the Joy-Cons have if they connected before the virtual controller existed.
+     */
+    private fun renderOrder(running: Boolean, merged: InputDevice?, controllers: List<InputDevice>) {
+        val joyConNames = setOf(MergeStatus.LEFT_JOYCON_NAME, MergeStatus.RIGHT_JOYCON_NAME)
+        val listedFirst = merged != null &&
+            controllers.none { it.name in joyConNames && it.id < merged.id }
+        orderStatus.visibility = if (running && merged != null) View.VISIBLE else View.GONE
+        orderStatus.setText(
+            when {
+                client.reconnecting -> R.string.reconnecting
+                listedFirst -> R.string.order_first
+                else -> R.string.order_after
+            },
+        )
+        reconnectButton.visibility =
+            if (running && merged != null && !listedFirst && !client.reconnecting) View.VISIBLE else View.GONE
     }
 
     private fun renderJoyCon(
@@ -240,6 +307,10 @@ class MainActivity : Activity(), InputManager.InputDeviceListener {
         private const val TAG = "MergeController"
         private const val PREFS_NAME = "settings"
         private const val PREF_NINTENDO_LAYOUT = "nintendo_layout"
+        private const val PREF_RUMBLE = "rumble"
+        private const val PREF_XBOX_IDENTITY = "xbox_identity"
+        private const val TEST_PULSE_MS = 400L
+        private const val TEST_STEP_MS = 700L
         private const val STATUS_POLL_MS = 500L
         private const val AXIS_LOG_STEP = 0.25f
 

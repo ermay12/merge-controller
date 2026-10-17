@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.ermay12.mergecontroller"
-        minSdk = 29
+        minSdk = 31
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -18,6 +18,9 @@ android {
         ndk {
             abiFilters += listOf("arm64-v8a", "x86_64")
         }
+
+        // Lets the app recognize a merge service still running code from an older install.
+        buildConfigField("long", "BUILD_TIME", "${System.currentTimeMillis()}L")
     }
 
     buildTypes {

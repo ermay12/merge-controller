@@ -82,6 +82,51 @@
             style="@style/Hint"
             android:text="@string/nintendo_layout_hint" />
 
+        <Switch
+            android:id="@+id/xbox_identity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/xbox_identity"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/xbox_identity_hint" />
+
+        <Switch
+            android:id="@+id/rumble"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/rumble"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/rumble_hint" />
+
+        <Button
+            android:id="@+id/test_rumble"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/test_rumble" />
+
+        <TextView
+            android:id="@+id/order_status"
+            style="@style/Body"
+            android:layout_marginTop="16dp"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/reconnect_joycons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/reconnect_joycons"
+            android:visibility="gone" />
+
         <TextView
             style="@style/SectionHeader"
             android:text="@string/section_test" />

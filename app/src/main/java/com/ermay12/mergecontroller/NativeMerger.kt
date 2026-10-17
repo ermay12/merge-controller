@@ -14,4 +14,10 @@ object NativeMerger {
     @JvmStatic external fun setFlags(flags: Int)
 
     @JvmStatic external fun status(): String
+
+    /**
+     * Waits until the requested rumble's sequence number differs from [seq] or
+     * [timeoutMs] passes. Returns `(sequence shl 32) or (strong shl 16) or weak`.
+     */
+    @JvmStatic external fun awaitRumble(seq: Int, timeoutMs: Int): Long
 }
