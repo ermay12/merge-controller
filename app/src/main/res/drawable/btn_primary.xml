@@ -1,0 +1,13 @@
+<!-- 4dp insets: 48dp touch target, 40dp visible pill. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetTop="4dp"
+    android:insetBottom="4dp">
+    <ripple android:color="@color/ripple_on_primary">
+        <item>
+            <shape android:shape="rectangle">
+                <corners android:radius="24dp" />
+                <solid android:color="@color/btn_primary_bg" />
+            </shape>
+        </item>
+    </ripple>
+</inset>

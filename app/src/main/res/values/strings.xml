@@ -1,53 +1,128 @@
 <resources>
     <string name="app_name">Merge Controller</string>
-    <string name="app_subtitle">Combines a left and right Joy-Con into one virtual controller and hides the originals from other apps.</string>
+    <string name="app_subtitle">Play Android games with a left and right Joy-Con as one controller.</string>
+    <string name="help">Help</string>
 
-    <string name="section_shizuku">Shizuku</string>
-    <string name="shizuku_not_running">Shizuku is not running. Start it in the Shizuku app, then come back.</string>
-    <string name="shizuku_permission_needed">Merge Controller needs Shizuku permission.</string>
-    <string name="shizuku_permission_denied">Shizuku permission was denied. Allow Merge Controller in the Shizuku app.</string>
-    <string name="shizuku_ready">Connected (running as %1$s).</string>
-    <string name="grant_permission">Grant permission</string>
+    <!-- Step badges and accessibility -->
+    <string name="step_number_1" translatable="false">1</string>
+    <string name="step_number_2" translatable="false">2</string>
+    <string name="a11y_step_done">Done</string>
+    <string name="a11y_step_todo">Not done yet</string>
+    <string name="a11y_step_problem">Needs attention</string>
+    <string name="a11y_expanded">Expanded</string>
+    <string name="a11y_collapsed">Collapsed</string>
 
-    <string name="section_joycons">Joy-Cons</string>
-    <string name="joycon_left">Left</string>
-    <string name="joycon_right">Right</string>
-    <string name="joycon_merged">%1$s: merged and hidden (%2$s)</string>
-    <string name="joycon_connected">%1$s: connected</string>
-    <string name="joycon_missing">%1$s: not connected. Pair it in Bluetooth settings.</string>
+    <!-- Step 1: Shizuku -->
+    <string name="step1_install_title">Install Shizuku</string>
+    <string name="step1_install_body">Merge Controller needs Shizuku, a free helper app, to take over your Joy-Cons. Android doesn’t let apps do this on their own.</string>
+    <string name="step1_start_title">Start Shizuku</string>
+    <string name="step1_start_body">Open Shizuku and use Start via Wireless debugging. It needs Wi-Fi but no computer, and the first time takes a few minutes.</string>
+    <string name="step1_start_note">Rooted phone? Use Start (for rooted devices) instead.</string>
+    <string name="step1_restart_title">Start Shizuku again</string>
+    <string name="step1_restart_body">Shizuku stops whenever your phone restarts. Open Shizuku and start it the same way as before.</string>
+    <string name="step1_allow_title">Allow access</string>
+    <string name="step1_allow_body">Shizuku is running. Tap Allow access, then choose Allow all the time.</string>
+    <string name="step1_denied_title">Access was denied</string>
+    <string name="step1_denied_body">Open Shizuku, tap Application management, and turn on Merge Controller.</string>
+    <string name="step1_done_title">Shizuku is running</string>
+    <string name="get_shizuku">Get Shizuku</string>
+    <string name="open_shizuku">Open Shizuku</string>
+    <string name="allow_access">Allow access</string>
+    <string name="shizuku_guide">Setup guide</string>
 
-    <string name="section_virtual">Virtual controller</string>
-    <string name="merge_stopped">Stopped. The Joy-Cons work as separate controllers.</string>
+    <!-- Step 2: Joy-Cons -->
+    <string name="step2_title_both">Connect your Joy-Cons</string>
+    <string name="step2_title_left">Connect the left Joy-Con</string>
+    <string name="step2_title_right">Connect the right Joy-Con</string>
+    <string name="step2_done_title">Both Joy-Cons connected</string>
+    <string name="joycon_left">Left Joy-Con</string>
+    <string name="joycon_right">Right Joy-Con</string>
+    <string name="joycon_missing">Not connected</string>
+    <string name="joycon_connected">Connected</string>
+    <string name="joycon_merged">Merged</string>
+    <string name="joycon_unsupported_status">Paired, but not supported</string>
+    <string name="joycon_help_reconnect">Paired before? Press any button on the Joy-Con to reconnect it.</string>
+    <string name="joycon_help_pair">First time? Open Bluetooth settings and tap Pair new device. Hold the small sync button on the Joy-Con’s rail until the green lights move back and forth, then tap Joy-Con (L) or Joy-Con (R).</string>
+    <string name="joycon_help_models">Works with Joy-Cons for the original Switch. Joy-Con 2 isn’t supported.</string>
+    <string name="joycon_unsupported_title">This phone can’t use Joy-Cons</string>
+    <string name="joycon_unsupported_body">Android sees your Joy-Con, but this phone’s system doesn’t support Joy-Cons as controllers, so Merge Controller can’t use them. Tap Help for details.</string>
+    <string name="open_bluetooth">Open Bluetooth settings</string>
+
+    <!-- Merge card -->
+    <string name="merge_off">Merging is off</string>
+    <string name="merge_off_blocked">Finish step 1 to start merging.</string>
+    <string name="merge_off_ready">Games will see your two Joy-Cons as one controller.</string>
+    <string name="merge_off_ready_partial">You can start now. Each Joy-Con joins as soon as it connects.</string>
     <string name="merge_starting">Starting…</string>
-    <string name="merge_running">Running as “%1$s” (%2$s).</string>
-    <string name="merge_waiting">Running as “%1$s”. Waiting for the Joy-Cons: press any button on each to connect it.</string>
+    <string name="merge_starting_body">This can take a few seconds.</string>
+    <string name="merge_on">Merging is on</string>
+    <string name="merge_on_body">Games now see one controller named “%1$s”.</string>
+    <string name="merge_on_note">You can close this app. Merging keeps going until you tap Stop, restart your phone, or Shizuku stops.</string>
+    <string name="merge_waiting">Waiting for Joy-Cons</string>
+    <string name="merge_waiting_body">Press any button on each Joy-Con to connect it.</string>
+    <string name="merge_waiting_left">Waiting for the left Joy-Con</string>
+    <string name="merge_waiting_right">Waiting for the right Joy-Con</string>
+    <string name="merge_waiting_one_body">Press any button on it to connect it. The other Joy-Con is ready.</string>
     <string name="start_merging">Start merging</string>
     <string name="stop_merging">Stop merging</string>
-    <string name="nintendo_layout">Nintendo button layout</string>
-    <string name="nintendo_layout_hint">Off: face buttons map by position, like Android does for Joy-Cons (bottom button = A). On: they map by label (the button marked A = A).</string>
 
-    <string name="xbox_identity">Appear as an Xbox controller</string>
-    <string name="xbox_identity_hint">Uses the name, IDs and button layout of an Xbox Wireless Controller, so games that only accept known controllers (like Call of Duty: Mobile) recognize it. Changing this recreates the merged controller.</string>
-    <string name="rumble">Forward rumble to Joy-Cons</string>
-    <string name="rumble_hint">Rumble sent to the merged controller is passed on over Bluetooth: the strong motor to the left Joy-Con, the weak motor to the right.</string>
-    <string name="test_rumble">Test rumble</string>
-    <string name="order_first">Listed before the Joy-Cons, so games that use the first controller (like GTA: San Andreas) will pick it.</string>
-    <string name="order_after">Listed after the Joy-Cons. Games that use the first controller (like GTA: San Andreas) will ignore it. Reconnect the Joy-Cons to fix this.</string>
-    <string name="reconnecting">Disconnecting the Joy-Cons…</string>
+    <!-- Errors -->
+    <string name="error_title">Something went wrong</string>
+    <string name="error_start_failed">Couldn’t start merging (error %1$d).</string>
+    <string name="reconnect_failed">Couldn’t disconnect the Joy-Cons. Try again.</string>
+    <string name="start_timeout">Merging didn’t start. Make sure Shizuku is running, then try again.</string>
+    <string name="report_problem">Report a problem</string>
+
+    <!-- Games that use the first controller -->
+    <string name="order_tip_title">Game ignoring the controller?</string>
+    <string name="order_tip_body">Some games, like GTA: San Andreas, only use the first controller Android lists, and right now that’s a Joy-Con. Tap Reconnect Joy-Cons, then press a button on each one.</string>
     <string name="reconnect_joycons">Reconnect Joy-Cons</string>
-    <string name="reconnect_failed">Couldn’t disconnect the Joy-Cons.</string>
+    <string name="reconnecting">Disconnecting the Joy-Cons…</string>
 
-    <string name="section_test">Input test</string>
-    <string name="test_hint">Press buttons while this screen is open. When merging, every event should come from the merged controller.</string>
-    <string name="input_none">No controller input yet.</string>
+    <!-- Settings -->
+    <string name="section_settings">Settings</string>
+    <string name="xbox_identity">Appear as an Xbox controller</string>
+    <string name="xbox_identity_hint">Recommended. Helps games that only accept controllers they know, like Call of Duty: Mobile. The controller briefly reconnects when you change this.</string>
+    <string name="nintendo_layout">Nintendo button layout</string>
+    <string name="nintendo_layout_hint">Off: buttons work by position, like on an Xbox controller, so the bottom button is A. Best for most games.\nOn: buttons follow their labels, so the button marked A is A.</string>
+    <string name="rumble">Rumble</string>
+    <string name="rumble_hint">Vibrate the Joy-Cons when a game uses rumble.</string>
+    <string name="test_rumble">Test rumble</string>
+    <string name="test_rumble_hint">Vibrates the left Joy-Con, then the right, then both.</string>
+    <string name="test_rumble_needs_merge">Start merging to test rumble.</string>
+    <string name="test_rumble_needs_rumble">Turn on Rumble to test it.</string>
+
+    <!-- Input test -->
+    <string name="section_test">Test your controller</string>
+    <string name="test_hint">Press buttons and move the sticks while this screen is open.</string>
+    <string name="input_none">Nothing pressed yet.</string>
     <string name="input_from">From: %1$s</string>
-    <string name="input_held">Held: %1$s</string>
-    <string name="input_held_none">Held: none</string>
-    <string name="input_axes">Left stick   x %1$+.2f  y %2$+.2f\nRight stick  z %3$+.2f  rz %4$+.2f\nTriggers     L %5$.2f  R %6$.2f\nD-pad (hat)  x %7$+.0f  y %8$+.0f</string>
+    <string name="input_from_merged">From the merged controller, “%1$s”.</string>
+    <string name="input_from_unmerged">From “%1$s”, not the merged controller.</string>
+    <string name="input_held">Buttons: %1$s</string>
+    <string name="input_held_none">Buttons: none</string>
+    <string name="input_axes">Left stick   x %1$+.2f  y %2$+.2f\nRight stick  x %3$+.2f  y %4$+.2f\nTriggers     L %5$.2f   R %6$.2f\nD-pad        x %7$+.0f  y %8$+.0f</string>
 
-    <string name="section_devices">Controllers visible to Android</string>
+    <!-- Advanced -->
+    <string name="section_advanced">Advanced</string>
+    <string name="advanced_summary">Details for troubleshooting</string>
+    <string name="diag_shizuku">Shizuku access: %1$s</string>
+    <string name="diag_shizuku_root">root</string>
+    <string name="diag_shizuku_shell">ADB (shell user)</string>
+    <string name="diag_shizuku_none">not available</string>
+    <string name="diag_left">Left Joy-Con: %1$s</string>
+    <string name="diag_right">Right Joy-Con: %1$s</string>
+    <string name="diag_virtual">Merged controller: %1$s</string>
+    <string name="diag_not_merged">not merged</string>
+    <string name="diag_not_running">not running</string>
+    <string name="order_first">Controller order: the merged controller is listed before the Joy-Cons.</string>
+    <string name="order_after">Controller order: the merged controller is listed after the Joy-Cons.</string>
+    <string name="section_devices">Controllers Android sees</string>
     <string name="devices_none">None</string>
-    <string name="device_tag_virtual">"  ← merged output"</string>
-    <string name="device_tag_hidden">"  ← hidden: sends no input"</string>
-    <string name="devices_hint">Without root, Android still lists the original Joy-Cons, but while merging they send no input to any app.</string>
+    <string name="device_tag_virtual">Merged controller</string>
+    <string name="device_tag_hidden">Original Joy-Con, muted while merging</string>
+    <string name="devices_hint">Android keeps listing the original Joy-Cons while merging, but they send nothing to games.</string>
+
+    <!-- Footer -->
+    <string name="footer">Version %1$s · Source code and help on GitHub</string>
 </resources>

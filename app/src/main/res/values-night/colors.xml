@@ -1,0 +1,22 @@
+<resources>
+    <color name="bg">@android:color/system_neutral1_900</color>
+    <color name="card">@android:color/system_neutral1_800</color>
+    <color name="divider">@android:color/system_neutral2_700</color>
+    <color name="text_primary">@android:color/system_neutral1_50</color>
+    <color name="text_secondary">@android:color/system_neutral2_200</color>
+
+    <color name="primary">@android:color/system_accent1_200</color>
+    <color name="on_primary">@android:color/system_accent1_800</color>
+    <color name="tonal">@android:color/system_accent2_700</color>
+    <color name="on_tonal">@android:color/system_accent2_100</color>
+    <color name="tip_bg">@android:color/system_accent3_700</color>
+    <color name="on_tip">@android:color/system_accent3_100</color>
+
+    <color name="status_ok">#81C995</color>
+    <color name="on_status_ok">#00391A</color>
+    <color name="status_wait">#FDD663</color>
+    <color name="status_error">#F2B8B5</color>
+    <color name="on_status_error">#601410</color>
+    <color name="error_container">#8C1D18</color>
+    <color name="on_error_container">#F9DEDC</color>
+</resources>

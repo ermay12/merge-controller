@@ -81,10 +81,23 @@ class MergeServiceClient(
         }
     }
 
+    // A bind that never connects (Shizuku died, or the service process failed) mustn't leave "Starting…" up.
+    private val startTimeout = Runnable {
+        if (!starting) return@Runnable
+        starting = false
+        pendingStartFlags = null
+        error = appContext.getString(R.string.start_timeout)
+        onChanged()
+    }
+
     private val binderReceived = Shizuku.OnBinderReceivedListener { updateShizukuState() }
     private val binderDead = Shizuku.OnBinderDeadListener {
         service = null
         status = null
+        starting = false
+        pendingStartFlags = null
+        startAfterRemoval = null
+        mainHandler.removeCallbacks(startTimeout)
         updateShizukuState()
     }
     private val permissionResult = Shizuku.OnRequestPermissionResultListener { requestCode, _ ->
@@ -106,14 +119,24 @@ class MergeServiceClient(
         Shizuku.removeBinderDeadListener(binderDead)
         Shizuku.removeRequestPermissionResultListener(permissionResult)
         mainHandler.removeCallbacks(finishRemoval)
-        if (service != null && Shizuku.pingBinder()) {
-            val remove = endIdleService && status?.running != true
+        mainHandler.removeCallbacks(startTimeout)
+        // Unbind even without a service: peekUserService() registers the connection either way.
+        if (Shizuku.pingBinder()) {
+            val remove = service != null && endIdleService && status?.running != true
             runCatching { Shizuku.unbindUserService(args, connection, remove) }
         }
         service = null
     }
 
-    fun requestPermission() = Shizuku.requestPermission(PERMISSION_REQUEST_CODE)
+    /**
+     * Shizuku reports no callback when the user grants permission in the
+     * Shizuku app, so the screen re-checks when it's shown and while it waits.
+     */
+    fun recheck() = updateShizukuState()
+
+    fun requestPermission() {
+        runCatching { Shizuku.requestPermission(PERMISSION_REQUEST_CODE) }.onFailure { updateShizukuState() }
+    }
 
     fun start(flags: Int) {
         error = null
@@ -130,10 +153,13 @@ class MergeServiceClient(
         }
         pendingStartFlags = flags
         starting = true
+        mainHandler.removeCallbacks(startTimeout)
+        mainHandler.postDelayed(startTimeout, START_TIMEOUT_MS)
         runCatching { Shizuku.bindUserService(args, connection) }.onFailure {
             starting = false
             pendingStartFlags = null
-            error = it.message
+            mainHandler.removeCallbacks(startTimeout)
+            error = it.message ?: it.toString()
         }
         onChanged()
     }
@@ -141,7 +167,7 @@ class MergeServiceClient(
     /** Stops merging. The idle service process stays up for a quick restart until [release]. */
     fun stop() {
         val s = service ?: return
-        runCatching { s.stop() }.onFailure { error = it.message }
+        runCatching { s.stop() }.onFailure { error = it.message ?: it.toString() }
         refresh()
     }
 
@@ -155,8 +181,12 @@ class MergeServiceClient(
             val ok = runCatching { s.reconnectJoyCons() }.getOrDefault(false)
             mainHandler.post {
                 reconnecting = false
-                if (!ok) error = appContext.getString(R.string.reconnect_failed)
                 refresh()
+                // Not a failure if merging was stopped meanwhile.
+                if (!ok && status?.running == true) {
+                    error = appContext.getString(R.string.reconnect_failed)
+                    onChanged()
+                }
             }
         }
     }
@@ -169,18 +199,21 @@ class MergeServiceClient(
         val s = service ?: return
         runCatching { MergeStatus.parse(s.status()) }
             .onSuccess { status = it }
-            .onFailure { error = it.message }
+            .onFailure { error = it.message ?: it.toString() }
         onChanged()
     }
 
     private fun updateShizukuState() {
-        shizukuState = when {
-            !Shizuku.pingBinder() -> ShizukuState.NOT_RUNNING
-            Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED -> ShizukuState.READY
-            Shizuku.shouldShowRequestPermissionRationale() -> ShizukuState.PERMISSION_DENIED
-            else -> ShizukuState.PERMISSION_NEEDED
-        }
-        shizukuUid = if (shizukuState == ShizukuState.READY) Shizuku.getUid() else -1
+        // Shizuku can die between these calls, which then throw.
+        shizukuState = runCatching {
+            when {
+                !Shizuku.pingBinder() -> ShizukuState.NOT_RUNNING
+                Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED -> ShizukuState.READY
+                Shizuku.shouldShowRequestPermissionRationale() -> ShizukuState.PERMISSION_DENIED
+                else -> ShizukuState.PERMISSION_NEEDED
+            }
+        }.getOrDefault(ShizukuState.NOT_RUNNING)
+        shizukuUid = if (shizukuState == ShizukuState.READY) runCatching { Shizuku.getUid() }.getOrDefault(-1) else -1
         if (shizukuState == ShizukuState.READY && service == null && !removing) {
             // Reattach to a merge left running by an earlier session; never spawns a new process.
             runCatching { Shizuku.peekUserService(args, connection) }
@@ -189,7 +222,14 @@ class MergeServiceClient(
     }
 
     private fun onConnected(binder: IBinder?) {
-        if (binder == null || !binder.pingBinder()) return
+        mainHandler.removeCallbacks(startTimeout)
+        if (binder == null || !binder.pingBinder()) {
+            if (starting) error = appContext.getString(R.string.start_timeout)
+            starting = false
+            pendingStartFlags = null
+            onChanged()
+            return
+        }
         val s = IMergeService.Stub.asInterface(binder)
         if (runCatching { s.buildTime() }.getOrNull() != BuildConfig.BUILD_TIME) {
             replaceOutdatedService(s)
@@ -197,9 +237,10 @@ class MergeServiceClient(
         }
         service = s
         starting = false
-        val flags = pendingStartFlags
+        val wantsStart = pendingStartFlags != null
         pendingStartFlags = null
-        if (flags != null) startOn(s, flags) else refresh()
+        // Current flags, not those from when Start was tapped: settings may have changed during the bind.
+        if (wantsStart) startOn(s, currentFlags()) else refresh()
     }
 
     /**
@@ -229,14 +270,14 @@ class MergeServiceClient(
 
     private fun startOn(s: IMergeService, flags: Int) {
         val result = runCatching { s.start(flags) }.getOrElse { e ->
-            error = e.message
+            error = e.message ?: e.toString()
             onChanged()
             return
         }
         refresh()
         if (result != 0) {
             Log.w(TAG, "start failed ($result): ${status?.error}")
-            error = status?.error?.ifEmpty { null } ?: "Start failed (error $result)"
+            error = status?.error?.ifEmpty { null } ?: appContext.getString(R.string.error_start_failed, result)
             onChanged()
         }
     }
@@ -251,5 +292,6 @@ class MergeServiceClient(
         private const val TAG = "MergeController"
         private const val PERMISSION_REQUEST_CODE = 1
         private const val REMOVAL_TIMEOUT_MS = 3000L
+        private const val START_TIMEOUT_MS = 15000L
     }
 }

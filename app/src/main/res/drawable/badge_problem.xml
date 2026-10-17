@@ -1,0 +1,8 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/status_error" />
+        </shape>
+    </item>
+    <item android:width="18dp" android:height="18dp" android:gravity="center" android:drawable="@drawable/ic_badge_priority" />
+</layer-list>

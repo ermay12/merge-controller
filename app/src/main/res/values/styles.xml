@@ -2,30 +2,227 @@
     <style name="AppTheme" parent="@android:style/Theme.DeviceDefault.DayNight">
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:colorBackground">@color/bg</item>
+        <item name="android:colorAccent">@color/primary</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">@bool/light_system_bars</item>
+        <item name="android:windowLightNavigationBar">@bool/light_system_bars</item>
     </style>
 
-    <style name="SectionHeader">
+    <!-- Text. No fontFamily, so the device font (e.g. Google Sans on Pixel) is kept. -->
+    <style name="Text">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginTop">28dp</item>
-        <item name="android:layout_marginBottom">4dp</item>
-        <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
-        <item name="android:textColor">?android:attr/colorAccent</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:lineHeight">24sp</item>
     </style>
-
-    <style name="Body">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
+    <style name="Text.AppTitle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:lineHeight">36sp</item>
+        <item name="android:accessibilityHeading">true</item>
+    </style>
+    <style name="Text.CardTitle">
+        <item name="android:textSize">18sp</item>
+        <item name="android:lineHeight">24sp</item>
+        <item name="android:textFontWeight">500</item>
+        <item name="android:accessibilityHeading">true</item>
+    </style>
+    <style name="Text.StepTitle" parent="Text.CardTitle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+    </style>
+    <style name="Text.StatusTitle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:lineHeight">28sp</item>
+        <item name="android:textFontWeight">500</item>
+        <item name="android:accessibilityLiveRegion">polite</item>
+    </style>
+    <style name="Text.Body">
         <item name="android:layout_marginTop">4dp</item>
-        <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
+    </style>
+    <style name="Text.Body.Row">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginTop">0dp</item>
+    </style>
+    <style name="Text.Secondary">
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:lineHeight">20sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+    <style name="Text.Label">
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:lineHeight">20sp</item>
+        <item name="android:textFontWeight">500</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:accessibilityHeading">true</item>
+    </style>
+    <style name="Text.Mono">
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:lineHeight">18sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+    <style name="Text.Tip">
+        <item name="android:textColor">@color/on_tip</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:lineHeight">20sp</item>
+    </style>
+    <style name="Text.Tip.Title">
+        <item name="android:textFontWeight">500</item>
+    </style>
+    <style name="Text.Error">
+        <item name="android:textColor">@color/on_error_container</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:lineHeight">20sp</item>
+    </style>
+    <style name="Text.Error.Title">
+        <item name="android:textFontWeight">500</item>
+    </style>
+    <!-- Used by TextAppearanceSpan for the second line of a setting switch. -->
+    <style name="SummaryAppearance">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
     </style>
 
-    <style name="Hint">
+    <!-- Containers -->
+    <style name="Card">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginTop">4dp</item>
-        <item name="android:textAppearance">?android:attr/textAppearanceSmall</item>
-        <item name="android:textColor">?android:attr/textColorSecondary</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:orientation">vertical</item>
+        <!-- Not android:padding, so a layout can still override paddingVertical. -->
+        <item name="android:paddingHorizontal">16dp</item>
+        <item name="android:paddingVertical">16dp</item>
+        <item name="android:background">@drawable/card</item>
+        <item name="android:animateLayoutChanges">true</item>
+    </style>
+    <style name="StepHeader">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:minHeight">48dp</item>
+    </style>
+    <style name="StepBody">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingStart">40dp</item>
+    </style>
+    <style name="StepBadge">
+        <item name="android:layout_width">28dp</item>
+        <item name="android:layout_height">28dp</item>
+        <item name="android:layout_marginEnd">12dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/on_primary</item>
+        <item name="android:textFontWeight">500</item>
+        <item name="android:autoSizeTextType">uniform</item>
+        <item name="android:autoSizeMinTextSize">8sp</item>
+        <item name="android:autoSizeMaxTextSize">14sp</item>
+        <item name="android:importantForAccessibility">no</item>
+    </style>
+    <style name="Dot">
+        <item name="android:layout_width">12dp</item>
+        <item name="android:layout_height">12dp</item>
+        <item name="android:layout_marginEnd">12dp</item>
+        <item name="android:background">@drawable/dot</item>
+        <item name="android:backgroundTint">@color/status_idle</item>
+        <item name="android:importantForAccessibility">no</item>
+    </style>
+    <style name="Row">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingVertical">4dp</item>
+        <item name="android:screenReaderFocusable">true</item>
+    </style>
+    <style name="Divider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:layout_marginVertical">12dp</item>
+        <item name="android:background">@color/divider</item>
+        <item name="android:importantForAccessibility">no</item>
+    </style>
+    <style name="Box">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingHorizontal">16dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">4dp</item>
+    </style>
+    <style name="Box.Tip">
+        <item name="android:background">@drawable/box_tip</item>
+    </style>
+    <style name="Box.Error">
+        <item name="android:background">@drawable/box_error</item>
+        <item name="android:accessibilityLiveRegion">polite</item>
+    </style>
+
+    <!-- Buttons. Parent keeps the device font; background, colors and size are ours. -->
+    <style name="Widget.App.Button" parent="@android:style/Widget.DeviceDefault.Button">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:minWidth">64dp</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textFontWeight">500</item>
+        <item name="android:letterSpacing">0.01</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:elevation">0dp</item>
+    </style>
+    <style name="Widget.App.Button.Primary">
+        <item name="android:background">@drawable/btn_primary</item>
+        <item name="android:textColor">@color/btn_primary_text</item>
+    </style>
+    <style name="Widget.App.Button.Primary.Large">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+    <style name="Widget.App.Button.Tonal">
+        <item name="android:background">@drawable/btn_tonal</item>
+        <item name="android:textColor">@color/btn_tonal_text</item>
+    </style>
+    <style name="Widget.App.Button.Text">
+        <item name="android:background">@drawable/btn_text</item>
+        <item name="android:textColor">@color/btn_text_text</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+    </style>
+
+    <!-- A setting: title + summary in one Switch, so the whole block is the touch target. -->
+    <style name="SettingSwitch">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:gravity">center_vertical|start</item>
+        <item name="android:switchPadding">16dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:lineSpacingMultiplier">1.1</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:background">?android:attr/selectableItemBackground</item>
     </style>
 </resources>

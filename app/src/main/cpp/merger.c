@@ -173,6 +173,9 @@ static const int kOutAxes[] = {
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof((a)[0]))
 
+// emit_output() sizes its event buffer for the larger key set.
+_Static_assert(ARRAY_LEN(kGenericKeys) <= ARRAY_LEN(kXboxKeys), "kXboxKeys must be the larger key set");
+
 // Serializes merger_start()/merger_stop(), which may arrive on different binder threads.
 static pthread_mutex_t g_control_lock = PTHREAD_MUTEX_INITIALIZER;
 static bool g_thread_started;  // a joinable merge thread exists (guarded by g_control_lock)
@@ -718,6 +721,7 @@ int merger_start(const merger_config *config) {
     g_profile = (config->flags & MERGER_FLAG_XBOX_IDENTITY) ? &kXboxProfile : &kGenericProfile;
     compute_output(&g_out);  // the resting state, which the device starts in
     memset(g_ff, 0, sizeof g_ff);
+    g_error[0] = '\0';
     pthread_mutex_unlock(&g_lock);
 
     int fd = create_virtual_device();
@@ -772,8 +776,9 @@ void merger_set_log_stderr(bool enabled) {
 }
 
 uint64_t merger_await_rumble(uint32_t seq, int timeout_ms) {
+    // Monotonic, so a change to the wall clock can't stall rumble refreshes.
     struct timespec deadline;
-    clock_gettime(CLOCK_REALTIME, &deadline);
+    clock_gettime(CLOCK_MONOTONIC, &deadline);
     deadline.tv_sec += timeout_ms / 1000;
     deadline.tv_nsec += (long)(timeout_ms % 1000) * 1000000;
     if (deadline.tv_nsec >= 1000000000) {
@@ -783,7 +788,9 @@ uint64_t merger_await_rumble(uint32_t seq, int timeout_ms) {
 
     pthread_mutex_lock(&g_rumble_lock);
     while (g_rumble_seq == seq) {
-        if (pthread_cond_timedwait(&g_rumble_cond, &g_rumble_lock, &deadline) == ETIMEDOUT) break;
+        if (pthread_cond_clockwait(&g_rumble_cond, &g_rumble_lock, CLOCK_MONOTONIC, &deadline) == ETIMEDOUT) {
+            break;
+        }
     }
     uint64_t result = ((uint64_t)g_rumble_seq << 32) | g_rumble;
     pthread_mutex_unlock(&g_rumble_lock);

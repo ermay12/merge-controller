@@ -61,13 +61,15 @@ class MergeUserService : IMergeService.Stub() {
         val status = MergeStatus.parse(NativeMerger.status())
         val addresses = listOfNotNull(status.left?.address, status.right?.address).filter { it.isNotEmpty() }
         if (!status.running || addresses.isEmpty()) return false
-        addresses.forEach { hidHost.disconnect(it) }
+        if (addresses.count { hidHost.disconnect(it) } == 0) return false
 
         // Recreate the virtual controller only once the Joy-Cons are gone, so a
         // game that's already running frees their slots before it reappears.
         val deadline = SystemClock.elapsedRealtime() + DISCONNECT_TIMEOUT_MS
         while (SystemClock.elapsedRealtime() < deadline) {
             val current = MergeStatus.parse(NativeMerger.status())
+            // Stopped meanwhile: don't undo the stop.
+            if (!current.running) return false
             if (current.left == null && current.right == null) break
             SystemClock.sleep(POLL_MS)
         }

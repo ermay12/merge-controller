@@ -1,6 +1,8 @@
 package com.ermay12.mergecontroller;
 
 // Implemented by MergeUserService, which Shizuku runs as the shell user.
+// Never renumber these: the app uses stop(), status() and buildTime() to talk to
+// a service left running by an older install.
 interface IMergeService {
     // Called by Shizuku when the service is removed.
     void destroy() = 16777114;

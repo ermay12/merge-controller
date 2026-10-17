@@ -1,164 +1,400 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/bg"
     android:fitsSystemWindows="true">
 
     <LinearLayout
+        android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:animateLayoutChanges="true"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="32dp">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textStyle="bold" />
+            android:gravity="center_vertical"
+            android:paddingStart="4dp"
+            android:paddingTop="16dp">
+
+            <TextView
+                style="@style/Text.AppTitle"
+                android:text="@string/app_name" />
+
+            <Button
+                android:id="@+id/help_button"
+                style="@style/Widget.App.Button.Text"
+                android:text="@string/help" />
+        </LinearLayout>
 
         <TextView
-            style="@style/Hint"
+            style="@style/Text.Secondary"
+            android:paddingHorizontal="4dp"
             android:text="@string/app_subtitle" />
 
-        <TextView
-            style="@style/SectionHeader"
-            android:text="@string/section_shizuku" />
+        <!-- Setup: step 1 (Shizuku), step 2 (Joy-Cons). Bodies are GONE when the step is done. -->
+        <LinearLayout
+            android:id="@+id/setup_card"
+            style="@style/Card"
+            android:layout_marginTop="20dp">
 
-        <TextView
-            android:id="@+id/shizuku_status"
-            style="@style/Body" />
+            <LinearLayout style="@style/StepHeader">
+                <TextView
+                    android:id="@+id/step1_badge"
+                    style="@style/StepBadge"
+                    android:background="@drawable/badge_todo"
+                    android:text="@string/step_number_1" />
+                <TextView
+                    android:id="@+id/step1_title"
+                    style="@style/Text.StepTitle" />
+            </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/step1_body"
+                style="@style/StepBody">
+                <TextView
+                    android:id="@+id/step1_text"
+                    style="@style/Text.Body" />
+                <TextView
+                    android:id="@+id/step1_note"
+                    style="@style/Text.Secondary"
+                    android:text="@string/step1_start_note"
+                    android:visibility="gone" />
+                <Button
+                    android:id="@+id/shizuku_action"
+                    style="@style/Widget.App.Button.Primary"
+                    android:layout_marginTop="12dp" />
+                <Button
+                    android:id="@+id/shizuku_guide"
+                    style="@style/Widget.App.Button.Text"
+                    android:layout_marginStart="-12dp"
+                    android:drawableEnd="@drawable/ic_open_in_new"
+                    android:drawablePadding="6dp"
+                    android:text="@string/shizuku_guide" />
+            </LinearLayout>
+
+            <View style="@style/Divider" />
+
+            <LinearLayout style="@style/StepHeader">
+                <TextView
+                    android:id="@+id/step2_badge"
+                    style="@style/StepBadge"
+                    android:background="@drawable/badge_todo"
+                    android:text="@string/step_number_2" />
+                <TextView
+                    android:id="@+id/step2_title"
+                    style="@style/Text.StepTitle" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/step2_body"
+                style="@style/StepBody">
+                <LinearLayout style="@style/Row">
+                    <View
+                        android:id="@+id/left_dot"
+                        style="@style/Dot" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            style="@style/Text"
+                            android:text="@string/joycon_left" />
+                        <TextView
+                            android:id="@+id/left_status"
+                            style="@style/Text.Secondary"
+                            android:layout_marginTop="0dp" />
+                    </LinearLayout>
+                </LinearLayout>
+                <LinearLayout style="@style/Row">
+                    <View
+                        android:id="@+id/right_dot"
+                        style="@style/Dot" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            style="@style/Text"
+                            android:text="@string/joycon_right" />
+                        <TextView
+                            android:id="@+id/right_status"
+                            style="@style/Text.Secondary"
+                            android:layout_marginTop="0dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- NICE: shown instead of joycon_help when a Nintendo device lacks the hid-nintendo name. -->
+                <TextView
+                    android:id="@+id/joycon_unsupported"
+                    style="@style/Text.Body"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/joycon_unsupported_body"
+                    android:textColor="@color/status_error"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/joycon_help"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical">
+                    <TextView
+                        style="@style/Text.Body"
+                        android:text="@string/joycon_help_reconnect" />
+                    <TextView
+                        style="@style/Text.Body"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/joycon_help_pair" />
+                    <TextView
+                        style="@style/Text.Secondary"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/joycon_help_models" />
+                    <Button
+                        android:id="@+id/bluetooth_button"
+                        style="@style/Widget.App.Button.Tonal"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/open_bluetooth" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Merge: the main status and action -->
+        <LinearLayout
+            android:id="@+id/merge_card"
+            style="@style/Card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minHeight="48dp">
+                <View
+                    android:id="@+id/merge_dot"
+                    style="@style/Dot" />
+                <TextView
+                    android:id="@+id/merge_title"
+                    style="@style/Text.StatusTitle" />
+                <ProgressBar
+                    android:id="@+id/merge_progress"
+                    style="?android:attr/progressBarStyleSmall"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="12dp"
+                    android:importantForAccessibility="no"
+                    android:indeterminateTint="@color/primary"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/merge_body"
+                style="@style/Text.Body" />
+            <TextView
+                android:id="@+id/merge_note"
+                style="@style/Text.Secondary"
+                android:layout_marginTop="8dp"
+                android:text="@string/merge_on_note"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/merge_button"
+                style="@style/Widget.App.Button.Primary.Large"
+                android:text="@string/start_merging" />
+
+            <LinearLayout
+                android:id="@+id/error_box"
+                style="@style/Box.Error"
+                android:visibility="gone">
+                <TextView
+                    style="@style/Text.Error.Title"
+                    android:text="@string/error_title" />
+                <TextView
+                    android:id="@+id/error_detail"
+                    style="@style/Text.Error"
+                    android:layout_marginTop="4dp"
+                    android:textIsSelectable="true" />
+                <Button
+                    android:id="@+id/report_button"
+                    style="@style/Widget.App.Button.Text"
+                    android:layout_marginStart="-12dp"
+                    android:text="@string/report_problem"
+                    android:textColor="@color/on_error_container" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/order_tip"
+                style="@style/Box.Tip"
+                android:visibility="gone">
+                <TextView
+                    style="@style/Text.Tip.Title"
+                    android:text="@string/order_tip_title" />
+                <TextView
+                    android:id="@+id/order_text"
+                    style="@style/Text.Tip"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/order_tip_body" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp">
+                    <Button
+                        android:id="@+id/reconnect_joycons"
+                        style="@style/Widget.App.Button.Text"
+                        android:layout_marginStart="-12dp"
+                        android:text="@string/reconnect_joycons" />
+                    <ProgressBar
+                        android:id="@+id/reconnect_progress"
+                        style="?android:attr/progressBarStyleSmall"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:importantForAccessibility="no"
+                        android:indeterminateTint="@color/on_tip"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Settings -->
+        <LinearLayout style="@style/Card">
+            <TextView
+                style="@style/Text.CardTitle"
+                android:layout_marginBottom="4dp"
+                android:text="@string/section_settings" />
+            <!-- Text = title + "\n" + summary, set in code (see Switch.setLabel). -->
+            <Switch
+                android:id="@+id/xbox_identity"
+                style="@style/SettingSwitch"
+                android:text="@string/xbox_identity" />
+            <Switch
+                android:id="@+id/nintendo_layout"
+                style="@style/SettingSwitch"
+                android:text="@string/nintendo_layout" />
+            <Switch
+                android:id="@+id/rumble"
+                style="@style/SettingSwitch"
+                android:text="@string/rumble" />
+            <Button
+                android:id="@+id/test_rumble"
+                style="@style/Widget.App.Button.Tonal"
+                android:layout_marginTop="4dp"
+                android:text="@string/test_rumble" />
+            <TextView
+                android:id="@+id/test_rumble_hint"
+                style="@style/Text.Secondary" />
+        </LinearLayout>
+
+        <!-- Input test -->
+        <LinearLayout style="@style/Card">
+            <TextView
+                style="@style/Text.CardTitle"
+                android:text="@string/section_test" />
+            <TextView
+                style="@style/Text.Secondary"
+                android:text="@string/test_hint" />
+            <LinearLayout
+                style="@style/Row"
+                android:layout_marginTop="8dp">
+                <View
+                    android:id="@+id/input_dot"
+                    style="@style/Dot"
+                    android:visibility="gone" />
+                <TextView
+                    android:id="@+id/input_source"
+                    style="@style/Text.Body.Row"
+                    android:text="@string/input_none" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/input_buttons"
+                style="@style/Text.Body"
+                android:visibility="gone" />
+            <TextView
+                android:id="@+id/input_axes"
+                style="@style/Text.Mono"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Advanced (collapsed by default) -->
+        <LinearLayout
+            style="@style/Card"
+            android:paddingVertical="4dp">
+            <LinearLayout
+                android:id="@+id/advanced_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="64dp">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        style="@style/Text.CardTitle"
+                        android:text="@string/section_advanced" />
+                    <TextView
+                        style="@style/Text.Secondary"
+                        android:layout_marginTop="0dp"
+                        android:text="@string/advanced_summary" />
+                </LinearLayout>
+                <ImageView
+                    android:id="@+id/advanced_chevron"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_expand" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/advanced_body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="12dp"
+                android:visibility="gone">
+                <TextView
+                    android:id="@+id/diag_shizuku"
+                    style="@style/Text.Secondary" />
+                <TextView
+                    android:id="@+id/diag_paths"
+                    style="@style/Text.Mono"
+                    android:textIsSelectable="true" />
+                <TextView
+                    android:id="@+id/order_status"
+                    style="@style/Text.Secondary"
+                    android:layout_marginTop="8dp" />
+                <TextView
+                    style="@style/Text.Label"
+                    android:text="@string/section_devices" />
+                <TextView
+                    android:id="@+id/device_list"
+                    style="@style/Text.Body" />
+                <TextView
+                    style="@style/Text.Secondary"
+                    android:text="@string/devices_hint" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- NICE: footer link -->
         <Button
-            android:id="@+id/shizuku_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/grant_permission"
-            android:visibility="gone" />
-
-        <TextView
-            style="@style/SectionHeader"
-            android:text="@string/section_joycons" />
-
-        <TextView
-            android:id="@+id/left_status"
-            style="@style/Body" />
-
-        <TextView
-            android:id="@+id/right_status"
-            style="@style/Body" />
-
-        <TextView
-            style="@style/SectionHeader"
-            android:text="@string/section_virtual" />
-
-        <TextView
-            android:id="@+id/merge_status"
-            style="@style/Body" />
-
-        <Button
-            android:id="@+id/merge_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/start_merging" />
-
-        <TextView
-            android:id="@+id/error_text"
-            style="@style/Body"
-            android:textColor="?android:attr/colorError"
-            android:visibility="gone" />
-
-        <Switch
-            android:id="@+id/nintendo_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:id="@+id/footer"
+            style="@style/Widget.App.Button.Text"
+            android:layout_gravity="center_horizontal"
             android:layout_marginTop="16dp"
-            android:text="@string/nintendo_layout"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
-
-        <TextView
-            style="@style/Hint"
-            android:text="@string/nintendo_layout_hint" />
-
-        <Switch
-            android:id="@+id/xbox_identity"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/xbox_identity"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
-
-        <TextView
-            style="@style/Hint"
-            android:text="@string/xbox_identity_hint" />
-
-        <Switch
-            android:id="@+id/rumble"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/rumble"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
-
-        <TextView
-            style="@style/Hint"
-            android:text="@string/rumble_hint" />
-
-        <Button
-            android:id="@+id/test_rumble"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/test_rumble" />
-
-        <TextView
-            android:id="@+id/order_status"
-            style="@style/Body"
-            android:layout_marginTop="16dp"
-            android:visibility="gone" />
-
-        <Button
-            android:id="@+id/reconnect_joycons"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/reconnect_joycons"
-            android:visibility="gone" />
-
-        <TextView
-            style="@style/SectionHeader"
-            android:text="@string/section_test" />
-
-        <TextView
-            style="@style/Hint"
-            android:text="@string/test_hint" />
-
-        <TextView
-            android:id="@+id/input_source"
-            style="@style/Body"
-            android:text="@string/input_none" />
-
-        <TextView
-            android:id="@+id/input_buttons"
-            style="@style/Body" />
-
-        <TextView
-            android:id="@+id/input_axes"
-            style="@style/Body"
-            android:fontFamily="monospace" />
-
-        <TextView
-            style="@style/SectionHeader"
-            android:text="@string/section_devices" />
-
-        <TextView
-            android:id="@+id/device_list"
-            style="@style/Body" />
-
-        <TextView
-            style="@style/Hint"
-            android:text="@string/devices_hint" />
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
     </LinearLayout>
 </ScrollView>

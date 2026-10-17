@@ -1,5 +1,7 @@
 package com.ermay12.mergecontroller
 
+import android.os.SystemClock
+import android.util.Log
 import kotlin.concurrent.thread
 import kotlin.math.log2
 import kotlin.math.roundToInt
@@ -16,6 +18,10 @@ class JoyConRumble(private val hidHost: ShellHidHost, private val isEnabled: () 
 
     private var packetCounter = 0
 
+    // Where rumble last went, so stop packets still reach Joy-Cons that merging just released.
+    private var lastLeft = ""
+    private var lastRight = ""
+
     fun start() {
         thread(name = "JoyConRumble", isDaemon = true) { forwardLoop() }
     }
@@ -24,40 +30,54 @@ class JoyConRumble(private val hidHost: ShellHidHost, private val isEnabled: () 
         var seq = 0
         var pendingStops = 0
         while (true) {
-            val result = NativeMerger.awaitRumble(seq, if (pendingStops > 0) REFRESH_MS else IDLE_WAIT_MS)
-            seq = (result ushr 32).toInt()
-            val value = if (isEnabled()) result.toInt() else 0
-            if (value != 0) {
-                // Resent every REFRESH_MS while active, like the Linux driver, so
-                // a single lost packet can't cut rumble short or leave it stuck.
-                send(strong = value ushr 16, weak = value and 0xFFFF)
-                pendingStops = STOP_REPEATS
-            } else if (pendingStops > 0) {
-                send(strong = 0, weak = 0)
-                pendingStops--
+            try {
+                val result = NativeMerger.awaitRumble(seq, if (pendingStops > 0) REFRESH_MS else IDLE_WAIT_MS)
+                seq = (result ushr 32).toInt()
+                val value = if (isEnabled()) result.toInt() else 0
+                if (value != 0) {
+                    // Resent every REFRESH_MS while active, like the Linux driver, so
+                    // a single lost packet can't cut rumble short or leave it stuck.
+                    send(strong = value ushr 16, weak = value and 0xFFFF)
+                    pendingStops = STOP_REPEATS
+                } else if (pendingStops > 0) {
+                    send(strong = 0, weak = 0)
+                    pendingStops--
+                }
+            } catch (t: Throwable) {
+                // Uncaught, this would end the whole service process and stop merging.
+                Log.w(TAG, "rumble forwarding failed", t)
+                SystemClock.sleep(ERROR_BACKOFF_MS)
             }
         }
     }
 
     private fun send(strong: Int, weak: Int) {
         val status = runCatching { MergeStatus.parse(NativeMerger.status()) }.getOrNull() ?: return
+        var left = status.left?.address.orEmpty()
+        var right = status.right?.address.orEmpty()
+        if (strong == 0 && weak == 0) {
+            // Joy-Cons keep their last rumble, so also stop any that merging just released.
+            left = left.ifEmpty { lastLeft }
+            right = right.ifEmpty { lastRight }
+        } else {
+            lastLeft = left
+            lastRight = right
+        }
         // Same split as the Linux hid-nintendo driver: strong motor -> left Joy-Con, weak -> right.
-        val targets = listOfNotNull(
-            status.left?.address?.let { it to strong },
-            status.right?.address?.let { it to weak },
-        )
-        for ((address, magnitude) in targets) {
+        for ((address, magnitude) in listOf(left to strong, right to weak)) {
             if (address.isEmpty()) continue
             val data = encodeRumble(magnitude / 65535.0)
             val report = "10%02X%s%s".format(packetCounter++ and 0xF, data, data)
-            if (!hidHost.sendData(address, report)) return
+            hidHost.sendData(address, report)
         }
     }
 
     companion object {
+        private const val TAG = "JoyConRumble"
         private const val REFRESH_MS = 50
         private const val IDLE_WAIT_MS = 1000
         private const val STOP_REPEATS = 3
+        private const val ERROR_BACKOFF_MS = 1000L
 
         /**
          * Encodes one Joy-Con actuator's rumble data (4 bytes, as hex): the

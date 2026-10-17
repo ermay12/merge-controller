@@ -1,3 +1,28 @@
 <resources>
     <color name="ic_launcher_background">#23232A</color>
+
+    <!-- Surfaces and text (light). Dark values in values-night/colors.xml. -->
+    <color name="bg">@android:color/system_neutral1_10</color>
+    <color name="card">@android:color/system_neutral1_50</color>
+    <color name="divider">@android:color/system_neutral2_100</color>
+    <color name="text_primary">@android:color/system_neutral1_900</color>
+    <color name="text_secondary">@android:color/system_neutral2_700</color>
+
+    <!-- Accent -->
+    <color name="primary">@android:color/system_accent1_600</color>
+    <color name="on_primary">@android:color/system_accent1_0</color>
+    <color name="tonal">@android:color/system_accent2_100</color>
+    <color name="on_tonal">@android:color/system_accent2_900</color>
+    <color name="tip_bg">@android:color/system_accent3_100</color>
+    <color name="on_tip">@android:color/system_accent3_900</color>
+
+    <!-- Status -->
+    <color name="status_idle">@android:color/system_neutral2_400</color>
+    <color name="status_ok">#1E8E3E</color>
+    <color name="on_status_ok">#FFFFFF</color>
+    <color name="status_wait">#B45309</color>
+    <color name="status_error">#B3261E</color>
+    <color name="on_status_error">#FFFFFF</color>
+    <color name="error_container">#F9DEDC</color>
+    <color name="on_error_container">#410E0B</color>
 </resources>

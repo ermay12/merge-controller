@@ -1,5 +1,6 @@
 package com.ermay12.mergecontroller
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothProfile
@@ -42,14 +43,21 @@ class ShellHidHost {
 
     private fun call(address: String, action: (BluetoothProfile, BluetoothDevice) -> Boolean): Boolean {
         val host = connect() ?: return false
-        val device = adapter?.getRemoteDevice(address.uppercase()) ?: return false
         return try {
+            val device = adapter?.getRemoteDevice(address.uppercase()) ?: return false
             action(host, device)
         } catch (e: Exception) {
-            Log.w(TAG, "HID host call for $address failed", e)
-            proxy = null
+            Log.w(TAG, "HID host call failed", e)
+            dropProxy(host)
             false
         }
+    }
+
+    /** Closes a failed proxy and backs off, so a call that keeps failing can't open a new proxy every time. */
+    private fun dropProxy(host: BluetoothProfile) {
+        runCatching { adapter?.closeProfileProxy(HID_HOST, host) }
+        proxy = null
+        lastConnectFailure = SystemClock.elapsedRealtime()
     }
 
     private fun connect(): BluetoothProfile? {
@@ -80,19 +88,26 @@ class ShellHidHost {
         }
     }
 
+    // Only runs in the Shizuku service's app_process, which doesn't enforce hidden API restrictions.
+    @SuppressLint("BlockedPrivateApi")
     private fun createAdapter(): BluetoothAdapter {
         // App processes register this during ActivityThread startup, which this process skips.
-        val initializer = Class.forName("android.bluetooth.BluetoothFrameworkInitializer")
-        if (initializer.getMethod("getBluetoothServiceManager").invoke(null) == null) {
+        // Android 12, where Bluetooth isn't a mainline module yet, has no initializer.
+        val initializer = runCatching { Class.forName("android.bluetooth.BluetoothFrameworkInitializer") }.getOrNull()
+        if (initializer != null && initializer.getMethod("getBluetoothServiceManager").invoke(null) == null) {
             val managerClass = Class.forName("android.os.BluetoothServiceManager")
             val manager = managerClass.getDeclaredConstructor().apply { isAccessible = true }.newInstance()
             initializer.getMethod("setBluetoothServiceManager", managerClass).invoke(null, manager)
         }
         // The Bluetooth service rejects calls whose AttributionSource doesn't match
-        // the calling uid, so give the adapter an explicit identity.
-        val create = BluetoothAdapter::class.java.getDeclaredMethod("createAdapter", Context::class.java)
+        // the calling uid, so give the adapter an explicit identity. Newer Bluetooth
+        // modules (Android 17) take a Context; older ones the AttributionSource itself.
+        val adapterClass = BluetoothAdapter::class.java
+        val withContext = runCatching { adapterClass.getDeclaredMethod("createAdapter", Context::class.java) }.getOrNull()
+        val create = withContext ?: adapterClass.getDeclaredMethod("createAdapter", AttributionSource::class.java)
         create.isAccessible = true
-        return create.invoke(null, ShellContext) as BluetoothAdapter
+        val identity: Any = if (withContext != null) ShellContext else ShellContext.attributionSource
+        return create.invoke(null, identity) as BluetoothAdapter
     }
 
     /** Just enough Context for BluetoothAdapter, identifying as the package that owns this uid. */
