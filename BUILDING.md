@@ -101,7 +101,7 @@ Joy-Con (R) ──┘   grabs both evdev nodes             │
 
 ### Output mapping
 
-Both identities use IDs with no device-specific key layout on Android, so Android maps them with `Generic.kl`:
+The generic identity has no device-specific key layout on Android, so Android maps it with `Generic.kl`. The Xbox IDs (`045e:0b13`) do have one (`Vendor_045e_Product_0b13.kl`), but its face-button lines are identical to `Generic.kl`; only the stick/trigger axes differ. Face buttons therefore map the same way for both identities:
 
 | Joy-Con | Android |
 |---|---|

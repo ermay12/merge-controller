@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:animateLayoutChanges="true"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="32dp">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:paddingStart="4dp"
+            android:paddingTop="16dp">
+
+            <TextView
+                style="@style/Text.AppTitle"
+                android:text="@string/remap_title" />
+
+            <Button
+                android:id="@+id/remap_done"
+                style="@style/Widget.App.Button.Text"
+                android:text="@string/remap_done" />
+        </LinearLayout>
+
+        <TextView
+            style="@style/Text.Secondary"
+            android:paddingHorizontal="4dp"
+            android:text="@string/remap_description" />
+
+        <!-- Merge state and applying -->
+        <LinearLayout style="@style/Card">
+            <LinearLayout style="@style/Row">
+                <View
+                    android:id="@+id/remap_merge_dot"
+                    style="@style/Dot" />
+                <TextView
+                    android:id="@+id/remap_merge_status"
+                    style="@style/Text.Body.Row" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/remap_note"
+                style="@style/Text.Secondary" />
+            <Button
+                android:id="@+id/remap_apply"
+                style="@style/Widget.App.Button.Primary"
+                android:layout_marginTop="12dp"
+                android:text="@string/remap_apply"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Mappings -->
+        <LinearLayout style="@style/Card">
+            <TextView
+                style="@style/Text.CardTitle"
+                android:text="@string/remap_section" />
+            <TextView
+                android:id="@+id/remap_empty"
+                style="@style/Text.Secondary"
+                android:text="@string/remap_empty" />
+
+            <LinearLayout
+                android:id="@+id/remap_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <Button
+                android:id="@+id/remap_add"
+                style="@style/Widget.App.Button.Tonal"
+                android:layout_marginTop="12dp"
+                android:text="@string/remap_add" />
+            <TextView
+                android:id="@+id/remap_capture_hint"
+                style="@style/Text.Secondary" />
+            <Button
+                android:id="@+id/remap_restore"
+                style="@style/Widget.App.Button.Text"
+                android:layout_marginStart="-12dp"
+                android:layout_marginTop="8dp"
+                android:text="@string/remap_restore" />
+        </LinearLayout>
+
+        <TextView
+            style="@style/Text.Secondary"
+            android:layout_marginTop="16dp"
+            android:paddingHorizontal="4dp"
+            android:text="@string/remap_codes_hint" />
+    </LinearLayout>
+</ScrollView>

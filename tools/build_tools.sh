@@ -1,7 +1,22 @@
 #!/bin/sh
-# Builds the adb-shell debugging tools (joymerge, fakejoy) for arm64 devices.
+# Builds the debugging tools (joymerge, fakejoy).
+#   build_tools.sh          arm64, for adb push to a device (needs the NDK)
+#   build_tools.sh --host   native host build, for local testing with fakejoy
 set -e
 cd "$(dirname "$0")"
+
+if [ "${1:-}" = "--host" ]; then
+    CC="${CC:-cc}"
+    # -Wno-format-truncation: host gcc flags safe snprintf truncation of evdev
+    # names that the NDK's clang accepts.
+    CFLAGS="-O2 -Wall -Wextra -Werror -Wno-format-truncation -D_GNU_SOURCE -I../app/src/main/cpp -Ihost"
+    mkdir -p build
+    "$CC" $CFLAGS -o build/joymerge joymerge_cli.c ../app/src/main/cpp/merger.c host/android_log.c -pthread
+    "$CC" $CFLAGS -o build/fakejoy fakejoy.c
+    echo "Built host tools: tools/build/joymerge and tools/build/fakejoy"
+    exit 0
+fi
+
 SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
 if [ -z "$SDK" ]; then
     if [ -d "$HOME/Library/Android/sdk" ]; then SDK="$HOME/Library/Android/sdk"; else SDK="$HOME/Android/Sdk"; fi

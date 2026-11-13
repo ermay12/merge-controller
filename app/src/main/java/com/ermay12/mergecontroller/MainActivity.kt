@@ -169,18 +169,21 @@ class MainActivity : Activity(), InputManager.InputDeviceListener {
         orderStatus = findViewById(R.id.order_status)
         deviceList = findViewById(R.id.device_list)
 
-        prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        prefs = getSharedPreferences(MergeSettings.PREFS_NAME, MODE_PRIVATE)
         inputManager = getSystemService(InputManager::class.java)
-        client = MergeServiceClient(this, ::mergeFlags, ::render)
+        client = MergeServiceClient(this, ::mergeFlags, { MergeSettings.loadRemap(prefs) }, ::render)
 
         xboxIdentity.setLabel(R.string.xbox_identity, R.string.xbox_identity_hint)
         nintendoLayout.setLabel(R.string.nintendo_layout, R.string.nintendo_layout_hint)
         rumble.setLabel(R.string.rumble, R.string.rumble_hint)
-        bindSetting(xboxIdentity, PREF_XBOX_IDENTITY, default = true)
-        bindSetting(nintendoLayout, PREF_NINTENDO_LAYOUT, default = false)
-        bindSetting(rumble, PREF_RUMBLE, default = true)
+        bindSetting(xboxIdentity, MergeSettings.KEY_XBOX_IDENTITY, default = true)
+        bindSetting(nintendoLayout, MergeSettings.KEY_NINTENDO_LAYOUT, default = false)
+        bindSetting(rumble, MergeSettings.KEY_RUMBLE, default = true)
 
         findViewById<Button>(R.id.help_button).setOnClickListener { openUrl(README_URL) }
+        findViewById<Button>(R.id.remap_button).setOnClickListener {
+            open(Intent(this, RemapActivity::class.java))
+        }
         shizukuButton.setOnClickListener { onShizukuAction() }
         shizukuGuide.setOnClickListener { openUrl(SHIZUKU_GUIDE_URL) }
         findViewById<Button>(R.id.bluetooth_button).setOnClickListener {
@@ -640,10 +643,6 @@ class MainActivity : Activity(), InputManager.InputDeviceListener {
 
     companion object {
         private const val TAG = "MergeController"
-        private const val PREFS_NAME = "settings"
-        private const val PREF_NINTENDO_LAYOUT = "nintendo_layout"
-        private const val PREF_RUMBLE = "rumble"
-        private const val PREF_XBOX_IDENTITY = "xbox_identity"
         private const val PREF_SHIZUKU_WAS_READY = "shizuku_was_ready"
         private const val PREF_ADVANCED_EXPANDED = "advanced_expanded"
         private const val TEST_PULSE_MS = 400L
