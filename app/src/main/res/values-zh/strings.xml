@@ -1,0 +1,156 @@
+<resources>
+    <string name="app_name">Merge Controller</string>
+    <string name="app_subtitle">把左右两只 Joy-Con 合并成一个手柄，玩安卓游戏。</string>
+    <string name="help">帮助</string>
+
+    <!-- Step badges and accessibility -->
+    <string name="a11y_step_done">已完成</string>
+    <string name="a11y_step_todo">未完成</string>
+    <string name="a11y_step_problem">需要处理</string>
+    <string name="a11y_expanded">已展开</string>
+    <string name="a11y_collapsed">已折叠</string>
+
+    <!-- Step 1: Shizuku -->
+    <string name="step1_install_title">安装 Shizuku</string>
+    <string name="step1_install_body">Merge Controller 需要免费辅助应用 Shizuku 来接管你的 Joy-Con。安卓不允许应用自行做到这一点。</string>
+    <string name="step1_start_title">启动 Shizuku</string>
+    <string name="step1_start_body">打开 Shizuku，使用“通过无线调试启动”。需要 Wi-Fi，但不需要电脑，首次启动约几分钟。</string>
+    <string name="step1_start_note">手机已 root？请改用“启动（适用于已 root 设备）”。</string>
+    <string name="step1_restart_title">重新启动 Shizuku</string>
+    <string name="step1_restart_body">手机重启后 Shizuku 会停止。打开 Shizuku，按之前的方式再次启动。</string>
+    <string name="step1_allow_title">允许访问</string>
+    <string name="step1_allow_body">Shizuku 正在运行。点按“允许访问”，然后选择“始终允许”。</string>
+    <string name="step1_denied_title">访问被拒绝</string>
+    <string name="step1_denied_body">打开 Shizuku，点按“应用管理”，为 Merge Controller 开启授权。</string>
+    <string name="step1_done_title">Shizuku 正在运行</string>
+    <string name="get_shizuku">获取 Shizuku</string>
+    <string name="open_shizuku">打开 Shizuku</string>
+    <string name="allow_access">允许访问</string>
+    <string name="shizuku_guide">设置指南</string>
+
+    <!-- Step 2: Joy-Cons -->
+    <string name="step2_title_both">连接 Joy-Con</string>
+    <string name="step2_title_left">连接左手柄</string>
+    <string name="step2_title_right">连接右手柄</string>
+    <string name="step2_done_title">两只 Joy-Con 均已连接</string>
+    <string name="joycon_left">左手柄</string>
+    <string name="joycon_right">右手柄</string>
+    <string name="joycon_missing">未连接</string>
+    <string name="joycon_connected">已连接</string>
+    <string name="joycon_merged">已合并</string>
+    <string name="joycon_unsupported_status">已配对，但不受支持</string>
+    <string name="joycon_help_reconnect">之前配对过？按一下 Joy-Con 上的任意按键即可重新连接。</string>
+    <string name="joycon_help_pair">首次使用？打开蓝牙设置，点按“配对新设备”。按住 Joy-Con 滑轨上的小同步键，直到绿灯来回移动，然后点按 Joy-Con (L) 或 Joy-Con (R)。</string>
+    <string name="joycon_help_models">支持初代 Switch 的 Joy-Con，不支持 Joy-Con 2。</string>
+    <string name="joycon_unsupported_title">此手机无法使用 Joy-Con</string>
+    <string name="joycon_unsupported_body">安卓能识别你的 Joy-Con，但此手机的系统不支持把 Joy-Con 当作手柄，Merge Controller 无法使用它们。点按“帮助”了解详情。</string>
+    <string name="open_bluetooth">打开蓝牙设置</string>
+
+    <!-- Merge card -->
+    <string name="merge_off">合并未开启</string>
+    <string name="merge_off_blocked">完成第 1 步后才能开始合并。</string>
+    <string name="merge_off_ready">游戏会把两只 Joy-Con 视为一个手柄。</string>
+    <string name="merge_off_ready_partial">现在就可以开始。每只 Joy-Con 连接后立即加入。</string>
+    <string name="merge_starting">正在启动…</string>
+    <string name="merge_starting_body">可能需要几秒钟。</string>
+    <string name="merge_on">合并已开启</string>
+    <string name="merge_on_body">游戏现在会看到一个名为“%1$s”的手柄。</string>
+    <string name="merge_on_note">可以关闭本应用。合并会持续进行，直到你点按“停止”、重启手机或 Shizuku 停止。</string>
+    <string name="merge_waiting">等待 Joy-Con</string>
+    <string name="merge_waiting_body">分别按一下每只 Joy-Con 上的任意按键进行连接。</string>
+    <string name="merge_waiting_left">等待左手柄</string>
+    <string name="merge_waiting_right">等待右手柄</string>
+    <string name="merge_waiting_one_body">按一下它上面的任意按键进行连接。另一只 Joy-Con 已就绪。</string>
+    <string name="start_merging">开始合并</string>
+    <string name="stop_merging">停止合并</string>
+
+    <!-- Errors -->
+    <string name="error_title">出错了</string>
+    <string name="error_start_failed">无法开始合并（错误 %1$d）。</string>
+    <string name="reconnect_failed">无法断开 Joy-Con，请重试。</string>
+    <string name="start_timeout">合并未能启动。请确认 Shizuku 正在运行，然后重试。</string>
+    <string name="report_problem">报告问题</string>
+
+    <!-- Games that use the first controller -->
+    <string name="order_tip_title">游戏不理会手柄？</string>
+    <string name="order_tip_body">部分游戏（如 GTA：圣安地列斯）只使用安卓列表中的第一个手柄，而现在排在前面的是 Joy-Con。点按“重新连接 Joy-Con”，然后分别按一下两只手柄上的按键。</string>
+    <string name="reconnect_joycons">重新连接 Joy-Con</string>
+    <string name="reconnecting">正在断开 Joy-Con…</string>
+
+    <!-- Settings -->
+    <string name="section_settings">设置</string>
+    <string name="xbox_identity">伪装成 Xbox 手柄</string>
+    <string name="xbox_identity_hint">推荐开启。有助于只接受已知手柄的游戏（如使命召唤手游）。切换时手柄会短暂重连。</string>
+    <string name="nintendo_layout">任天堂按键布局</string>
+    <string name="nintendo_layout_hint">关：按键按位置生效，类似 Xbox 手柄，下方按键为 A。适合大多数游戏。\n开：按键按印的标签生效，印 A 的键就是 A。\n切换时手柄会短暂重连。</string>
+    <string name="rumble">震动</string>
+    <string name="rumble_hint">游戏触发震动时让 Joy-Con 震动。</string>
+    <string name="test_rumble">测试震动</string>
+    <string name="test_rumble_hint">依次震动左手柄、右手柄，然后同时震动。</string>
+    <string name="test_rumble_needs_merge">开始合并后才能测试震动。</string>
+    <string name="test_rumble_needs_rumble">开启“震动”后才能测试。</string>
+
+    <!-- Input test -->
+    <string name="section_test">测试手柄</string>
+    <string name="test_hint">在此界面打开时按下按键、拨动摇杆。</string>
+    <string name="input_none">尚未按下任何按键。</string>
+    <string name="input_from">来源：%1$s</string>
+    <string name="input_from_merged">来自合并后的手柄“%1$s”。</string>
+    <string name="input_from_unmerged">来自“%1$s”，不是合并后的手柄。</string>
+    <string name="input_held">按键：%1$s</string>
+    <string name="input_held_none">按键：无</string>
+    <string name="input_axes">左摇杆  x %1$+.2f  y %2$+.2f\n右摇杆  x %3$+.2f  y %4$+.2f\n扳机    L %5$.2f   R %6$.2f\n十字键  x %7$+.0f  y %8$+.0f</string>
+
+    <!-- Advanced -->
+    <string name="section_advanced">高级</string>
+    <string name="advanced_summary">排查问题的详细信息</string>
+    <string name="diag_shizuku">Shizuku 权限：%1$s</string>
+    <string name="diag_shizuku_root">root</string>
+    <string name="diag_shizuku_shell">ADB（shell 用户）</string>
+    <string name="diag_shizuku_none">不可用</string>
+    <string name="diag_left">左手柄：%1$s</string>
+    <string name="diag_right">右手柄：%1$s</string>
+    <string name="diag_virtual">合并手柄：%1$s</string>
+    <string name="diag_not_merged">未合并</string>
+    <string name="diag_not_running">未运行</string>
+    <string name="order_first">手柄顺序：合并手柄排在 Joy-Con 之前。</string>
+    <string name="order_after">手柄顺序：合并手柄排在 Joy-Con 之后。</string>
+    <string name="section_devices">安卓识别到的手柄</string>
+    <string name="devices_none">无</string>
+    <string name="device_tag_virtual">合并手柄</string>
+    <string name="device_tag_hidden">原始 Joy-Con，合并期间已静默</string>
+    <string name="devices_hint">合并期间安卓仍会列出原始 Joy-Con，但它们不会向游戏发送任何输入。</string>
+
+    <!-- Button mapping -->
+    <string name="custom_mapping">自定义按键映射</string>
+    <string name="remap_title">按键映射</string>
+    <string name="remap_done">完成</string>
+    <string name="remap_description">自定义每个 Joy-Con 按键在合并手柄上报的按键。自定义映射优先于“任天堂按键布局”设置。</string>
+    <string name="remap_section">自定义映射</string>
+    <string name="remap_empty">暂无自定义映射。按键遵循主界面的设置。</string>
+    <string name="remap_add">添加映射</string>
+    <string name="remap_press">在任意一只 Joy-Con 上按下要映射的按键…</string>
+    <string name="remap_timeout">未检测到按键，请重试。</string>
+    <string name="remap_not_remappable">该按键无法映射。</string>
+    <string name="remap_duplicate">该按键已在列表中。</string>
+    <string name="remap_choose">已捕获。请选择它要上报的按键。</string>
+    <string name="remap_apply">应用</string>
+    <string name="remap_applied">映射已应用。手柄已按新映射重新连接。</string>
+    <string name="remap_note_running">修改会即时保存。点按“应用”让手柄按新映射重新连接。</string>
+    <string name="remap_note_stopped">修改已保存，将在下次开始合并时生效。</string>
+    <string name="remap_restore">恢复默认</string>
+    <string name="remap_restored">已恢复默认。</string>
+    <string name="remap_remove">删除</string>
+    <string name="remap_side_left">左</string>
+    <string name="remap_side_right">右</string>
+    <string name="remap_entry_label">%1$s · %2$s (%3$d)</string>
+    <string name="remap_output_default">默认</string>
+    <string name="remap_output_unmap">不映射</string>
+    <string name="remap_codes_hint">按键以手机实际上报的原始代码识别，因此列表显示代码名而非印的标签。Capture、ZL/ZR 和十字键无法映射。</string>
+    <string name="remap_out_select">Select（−）</string>
+    <string name="remap_out_start">Start（+）</string>
+    <string name="remap_out_home">Home</string>
+
+    <!-- Footer -->
+    <string name="footer">版本 %1$s · 源码与帮助见 GitHub</string>
+</resources>
