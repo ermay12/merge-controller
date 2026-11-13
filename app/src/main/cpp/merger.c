@@ -40,8 +40,11 @@
 #define DEFAULT_LEFT_NAME "Nintendo Switch Left Joy-Con"
 #define DEFAULT_RIGHT_NAME "Nintendo Switch Right Joy-Con"
 
-// Both identities use IDs with no device-specific key layout on Android, so
-// it falls back to Generic.kl. The output codes below are picked for that layout.
+// The generic identity has no device-specific key layout on Android, so it
+// falls back to Generic.kl. The Xbox IDs (045e:0b13) do have one
+// (Vendor_045e_Product_0b13.kl), but its face-button lines match Generic.kl;
+// only stick/trigger axes differ. The output codes below are picked for that
+// shared face-button mapping.
 #define OUT_BUTTON_A BTN_SOUTH  // 304 -> KEYCODE_BUTTON_A
 #define OUT_BUTTON_B BTN_EAST   // 305 -> KEYCODE_BUTTON_B
 #define OUT_BUTTON_C BTN_C      // 306 -> KEYCODE_BUTTON_C
@@ -52,6 +55,9 @@
 #define STICK_MAX 32767
 
 #define MAX_FF_EFFECTS 16
+
+#define MAX_REMAP 32
+#define RAW_PRESS_QUEUE 16
 
 enum { SIDE_LEFT = 0, SIDE_RIGHT = 1, SIDE_COUNT = 2 };
 
@@ -149,7 +155,9 @@ static const keymap_t kCommonKeys[] = {
     {SIDE_RIGHT, BTN_THUMBR, BTN_THUMBR}, // right stick click
 };
 
-// hid-nintendo reports face buttons by position: A=EAST, B=SOUTH, X=NORTH, Y=WEST.
+// Mainline hid-nintendo reports face buttons by position: A=EAST, B=SOUTH,
+// X=NORTH, Y=WEST. Some kernels rotate these codes, so neither preset is
+// universal; user remaps (built into g_effective) override them.
 static const keymap_t kFacePositional[] = {
     {SIDE_RIGHT, BTN_SOUTH, OUT_BUTTON_A},
     {SIDE_RIGHT, BTN_EAST, OUT_BUTTON_B},
@@ -196,6 +204,23 @@ static source_t g_src[SIDE_COUNT];
 static const profile_t *g_profile = &kGenericProfile;
 static output_t g_out;
 static ff_effect_t g_ff[MAX_FF_EFFECTS];
+
+// Keymap synthesized at merger_start(): presets + user overrides. Rebuilt only
+// while no merge thread runs, so reading it needs no lock.
+static int g_remap[MAX_REMAP * 3];
+static size_t g_remap_count;
+static keymap_t g_effective[MAX_REMAP + 16];
+static size_t g_effective_count;
+
+_Static_assert(ARRAY_LEN(kCommonKeys) + ARRAY_LEN(kFacePositional) + MAX_REMAP <= ARRAY_LEN(g_effective),
+               "g_effective must fit presets plus all overrides");
+
+// Raw button presses for merger_take_raw_press(), pushed by the merge thread.
+static pthread_mutex_t g_press_lock = PTHREAD_MUTEX_INITIALIZER;
+static uint64_t g_press_queue[RAW_PRESS_QUEUE];
+static size_t g_press_head;
+static size_t g_press_count;
+static uint32_t g_press_seq;
 
 // Latest requested rumble, handed to merger_await_rumble() callers.
 static pthread_mutex_t g_rumble_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -245,6 +270,87 @@ static void apply_keymap(output_t *out, const keymap_t *map, size_t len) {
     }
 }
 
+static bool profile_advertises(int code) {
+    for (size_t i = 0; i < g_profile->key_count; i++) {
+        if (g_profile->keys[i] == code) return true;
+    }
+    return false;
+}
+
+// Capture, ZL/ZR and the D-pad are handled outside the keymap; remapping them
+// would report the press twice.
+static bool remap_src_allowed(int side, int src) {
+    if (side == SIDE_LEFT) {
+        if (src == BTN_Z || src == BTN_TL2) return false;
+        if (src == BTN_DPAD_UP || src == BTN_DPAD_DOWN || src == BTN_DPAD_LEFT || src == BTN_DPAD_RIGHT) return false;
+    } else if (side == SIDE_RIGHT) {
+        if (src == BTN_TR2) return false;
+    }
+    return true;
+}
+
+// Synthesizes presets + user overrides into one table, so a button can never
+// fire both its preset and its override. Caller must hold g_control_lock with
+// no merge thread running; g_profile and g_flags must already be set.
+static void build_effective_keymap(void) {
+    size_t n = 0;
+    for (size_t i = 0; i < ARRAY_LEN(kCommonKeys); i++) g_effective[n++] = kCommonKeys[i];
+    const keymap_t *face = (atomic_load(&g_flags) & MERGER_FLAG_NINTENDO_LAYOUT) ? kFaceNintendo : kFacePositional;
+    for (size_t i = 0; i < ARRAY_LEN(kFacePositional); i++) g_effective[n++] = face[i];
+
+    for (size_t i = 0; i < g_remap_count; i++) {
+        int side = g_remap[i * 3];
+        int src = g_remap[i * 3 + 1];
+        int dst = g_remap[i * 3 + 2];
+        if (side < 0 || side >= SIDE_COUNT || src <= 0 || src >= KEY_CNT) continue;
+        if (!remap_src_allowed(side, src)) continue;
+        size_t j = 0;
+        while (j < n && !(g_effective[j].side == side && g_effective[j].src == src)) j++;
+        if (dst < 0) {  // unmap: drop the entry if present
+            if (j < n) {
+                memmove(&g_effective[j], &g_effective[j + 1], (n - j - 1) * sizeof g_effective[0]);
+                n--;
+            }
+            continue;
+        }
+        // emit_output() and UI_SET_KEYBIT only cover advertised keys; anything
+        // else would silently never fire.
+        if (!profile_advertises(dst)) continue;
+        if (j < n) {
+            g_effective[j].dst = dst;
+        } else {
+            g_effective[n++] = (keymap_t){side, src, dst};
+        }
+    }
+    g_effective_count = n;
+    LOGI("keymap: %zu entries, %zu overrides", n, g_remap_count);
+}
+
+static void record_raw_press(int side, int code) {
+    pthread_mutex_lock(&g_press_lock);
+    g_press_seq++;
+    uint64_t entry = ((uint64_t)g_press_seq << 32) | ((uint64_t)side << 16) | (uint32_t)code;
+    if (g_press_count == RAW_PRESS_QUEUE) {  // full: drop the oldest
+        g_press_head = (g_press_head + 1) % RAW_PRESS_QUEUE;
+        g_press_count--;
+    }
+    g_press_queue[(g_press_head + g_press_count) % RAW_PRESS_QUEUE] = entry;
+    g_press_count++;
+    pthread_mutex_unlock(&g_press_lock);
+}
+
+uint64_t merger_take_raw_press(void) {
+    pthread_mutex_lock(&g_press_lock);
+    uint64_t press = 0;
+    if (g_press_count > 0) {
+        press = g_press_queue[g_press_head];
+        g_press_head = (g_press_head + 1) % RAW_PRESS_QUEUE;
+        g_press_count--;
+    }
+    pthread_mutex_unlock(&g_press_lock);
+    return press;
+}
+
 static range_t axis_range(int code) {
     switch (code) {
         case ABS_BRAKE:
@@ -271,12 +377,7 @@ static void compute_output(output_t *out) {
     const source_t *r = &g_src[SIDE_RIGHT];
 
     memset(out, 0, sizeof *out);
-    apply_keymap(out, kCommonKeys, ARRAY_LEN(kCommonKeys));
-    if (atomic_load(&g_flags) & MERGER_FLAG_NINTENDO_LAYOUT) {
-        apply_keymap(out, kFaceNintendo, ARRAY_LEN(kFaceNintendo));
-    } else {
-        apply_keymap(out, kFacePositional, ARRAY_LEN(kFacePositional));
-    }
+    apply_keymap(out, g_effective, g_effective_count);
     if (l->keys[BTN_Z]) out->keys[g_profile->capture_key] = true;
     if (g_profile->trigger_buttons) {
         out->keys[BTN_TL2] = l->keys[BTN_TL2];
@@ -453,7 +554,9 @@ static bool read_source(source_t *s) {
             } else if (s->dropped) {
                 continue;
             } else if (ev->type == EV_KEY && ev->code < KEY_CNT) {
-                s->keys[ev->code] = ev->value != 0;
+                bool pressed = ev->value != 0;
+                if (pressed && !s->keys[ev->code]) record_raw_press((int)(s - g_src), ev->code);
+                s->keys[ev->code] = pressed;
             } else if (ev->type == EV_ABS && ev->code < ABS_CNT) {
                 s->abs[ev->code] = ev->value;
             }
@@ -719,6 +822,18 @@ int merger_start(const merger_config *config) {
     memset(g_src, 0, sizeof g_src);
     for (int side = 0; side < SIDE_COUNT; side++) g_src[side].fd = -1;
     g_profile = (config->flags & MERGER_FLAG_XBOX_IDENTITY) ? &kXboxProfile : &kGenericProfile;
+    g_remap_count = 0;
+    if (config->remap != NULL) {
+        size_t n = config->remap_count;
+        if (n > MAX_REMAP) n = MAX_REMAP;
+        memcpy(g_remap, config->remap, n * 3 * sizeof g_remap[0]);
+        g_remap_count = n;
+    }
+    build_effective_keymap();
+    pthread_mutex_lock(&g_press_lock);
+    g_press_head = 0;
+    g_press_count = 0;
+    pthread_mutex_unlock(&g_press_lock);
     compute_output(&g_out);  // the resting state, which the device starts in
     memset(g_ff, 0, sizeof g_ff);
     g_error[0] = '\0';

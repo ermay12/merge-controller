@@ -280,6 +280,11 @@
                 android:id="@+id/nintendo_layout"
                 style="@style/SettingSwitch"
                 android:text="@string/nintendo_layout" />
+            <Button
+                android:id="@+id/remap_button"
+                style="@style/Widget.App.Button.Tonal"
+                android:layout_marginTop="4dp"
+                android:text="@string/custom_mapping" />
             <Switch
                 android:id="@+id/rumble"
                 style="@style/SettingSwitch"

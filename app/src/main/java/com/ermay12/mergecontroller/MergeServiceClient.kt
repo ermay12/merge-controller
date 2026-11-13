@@ -15,6 +15,7 @@ import kotlin.concurrent.thread
 class MergeServiceClient(
     context: Context,
     private val currentFlags: () -> Int,
+    private val currentRemap: () -> IntArray,
     private val onChanged: () -> Unit,
 ) {
 
@@ -195,6 +196,12 @@ class MergeServiceClient(
         service?.let { s -> runCatching { s.setFlags(flags) } }
     }
 
+    /** See [IMergeService.takeRawPress]. Non-blocking; 0 when nothing is queued or bound. */
+    fun takeRawPress(): Long {
+        val s = service ?: return 0
+        return runCatching { s.takeRawPress() }.getOrDefault(0)
+    }
+
     fun refresh() {
         val s = service ?: return
         runCatching { MergeStatus.parse(s.status()) }
@@ -269,7 +276,7 @@ class MergeServiceClient(
     }
 
     private fun startOn(s: IMergeService, flags: Int) {
-        val result = runCatching { s.start(flags) }.getOrElse { e ->
+        val result = runCatching { s.startWithRemap(flags, currentRemap()) }.getOrElse { e ->
             error = e.message ?: e.toString()
             onChanged()
             return

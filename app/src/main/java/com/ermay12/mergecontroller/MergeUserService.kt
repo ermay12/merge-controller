@@ -12,6 +12,7 @@ import kotlin.system.exitProcess
  */
 class MergeUserService : IMergeService.Stub() {
     @Volatile private var flags = 0
+    @Volatile private var remap = IntArray(0)
     private val hidHost = ShellHidHost()
 
     init {
@@ -23,33 +24,45 @@ class MergeUserService : IMergeService.Stub() {
         exitProcess(0)
     }
 
-    override fun start(flags: Int): Int {
+    override fun start(flags: Int): Int = startWithRemap(flags, IntArray(0))
+
+    override fun startWithRemap(flags: Int, remap: IntArray): Int {
+        val remapChanged = !remap.contentEquals(this.remap)
         this.flags = flags
-        restartIfIdentityChanged(flags)
-        return NativeMerger.start(flags)
+        this.remap = remap
+        if (restartIfChanged(flags, remapChanged)) return 0
+        return NativeMerger.startWithRemap(flags, remap)
     }
 
     override fun stop() = NativeMerger.stop()
 
     override fun setFlags(flags: Int) {
         this.flags = flags
-        if (!restartIfIdentityChanged(flags)) NativeMerger.setFlags(flags)
+        if (!restartIfChanged(flags, remapChanged = false)) NativeMerger.setFlags(flags)
     }
 
-    /** The identity is fixed when the virtual controller is created, so changing it means recreating it. */
-    private fun restartIfIdentityChanged(flags: Int): Boolean {
+    /**
+     * The identity, button layout and overrides are fixed when the virtual
+     * controller is created, so changing any of them means recreating it.
+     */
+    private fun restartIfChanged(flags: Int, remapChanged: Boolean): Boolean {
         val status = MergeStatus.parse(NativeMerger.status())
+        if (!status.running) return false
         val xbox = flags and MergeStatus.FLAG_XBOX_IDENTITY != 0
-        if (!status.running || status.xboxIdentity == xbox) return false
-        Log.i(TAG, "switching the virtual controller's identity (Xbox: $xbox)")
+        val nintendo = flags and MergeStatus.FLAG_NINTENDO_LAYOUT != 0
+        val wasNintendo = status.flags and MergeStatus.FLAG_NINTENDO_LAYOUT != 0
+        if (status.xboxIdentity == xbox && nintendo == wasNintendo && !remapChanged) return false
+        Log.i(TAG, "recreating the virtual controller (Xbox: $xbox, Nintendo layout: $nintendo, remap changed: $remapChanged)")
         NativeMerger.stop()
-        NativeMerger.start(flags)
+        NativeMerger.startWithRemap(flags, remap)
         return true
     }
 
     override fun status(): String = NativeMerger.status()
 
     override fun buildTime(): Long = BuildConfig.BUILD_TIME
+
+    override fun takeRawPress(): Long = NativeMerger.takeRawPress()
 
     /**
      * Games like GTA: San Andreas give player 1 to the gamepad with the lowest
@@ -75,7 +88,7 @@ class MergeUserService : IMergeService.Stub() {
         }
         Log.i(TAG, "Joy-Cons disconnected; recreating the virtual controller")
         NativeMerger.stop()
-        return NativeMerger.start(flags) == 0
+        return NativeMerger.startWithRemap(flags, remap) == 0
     }
 
     private companion object {

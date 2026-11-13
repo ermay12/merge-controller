@@ -24,4 +24,13 @@ interface IMergeService {
     // the Joy-Cons reconnect (a button press on each) it is listed before them.
     // Blocks for up to a few seconds. Returns false if merging isn't running.
     boolean reconnectJoyCons() = 6;
+
+    // Like start(), with user button overrides: flat triples [side, src, dst],
+    // side 0 = left, 1 = right, dst < 0 unmaps. Restarts merging if the
+    // overrides or the layout/identity changed. Returns 0 or a negative errno.
+    int startWithRemap(int flags, in int[] remap) = 7;
+
+    // Pops one raw Joy-Con button press, oldest first; 0 when none are queued.
+    // Returns (sequence shl 32) or (side shl 16) or evdevCode.
+    long takeRawPress() = 8;
 }

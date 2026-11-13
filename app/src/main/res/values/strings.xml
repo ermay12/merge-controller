@@ -84,7 +84,7 @@
     <string name="xbox_identity">Appear as an Xbox controller</string>
     <string name="xbox_identity_hint">Recommended. Helps games that only accept controllers they know, like Call of Duty: Mobile. The controller briefly reconnects when you change this.</string>
     <string name="nintendo_layout">Nintendo button layout</string>
-    <string name="nintendo_layout_hint">Off: buttons work by position, like on an Xbox controller, so the bottom button is A. Best for most games.\nOn: buttons follow their labels, so the button marked A is A.</string>
+    <string name="nintendo_layout_hint">Off: buttons work by position, like on an Xbox controller, so the bottom button is A. Best for most games.\nOn: buttons follow their labels, so the button marked A is A.\nThe controller briefly reconnects when you change this.</string>
     <string name="rumble">Rumble</string>
     <string name="rumble_hint">Vibrate the Joy-Cons when a game uses rumble.</string>
     <string name="test_rumble">Test rumble</string>
@@ -122,6 +122,45 @@
     <string name="device_tag_virtual">Merged controller</string>
     <string name="device_tag_hidden">Original Joy-Con, muted while merging</string>
     <string name="devices_hint">Android keeps listing the original Joy-Cons while merging, but they send nothing to games.</string>
+
+    <!-- Button mapping -->
+    <string name="custom_mapping">Custom button mapping</string>
+    <string name="remap_title">Button mapping</string>
+    <string name="remap_done">Done</string>
+    <string name="remap_description">Choose what each Joy-Con button reports on the merged controller. Custom mappings win over the Nintendo button layout setting.</string>
+    <string name="remap_section">Custom mappings</string>
+    <string name="remap_empty">No custom mappings. Buttons follow the settings on the main screen.</string>
+    <string name="remap_add">Add mapping</string>
+    <string name="remap_press">Press the button to remap on either Joy-Con…</string>
+    <string name="remap_timeout">No button was pressed. Try again.</string>
+    <string name="remap_not_remappable">That button can’t be remapped.</string>
+    <string name="remap_duplicate">That button is already in the list.</string>
+    <string name="remap_choose">Captured. Now choose what it should report.</string>
+    <string name="remap_apply">Apply</string>
+    <string name="remap_applied">Mapping applied. The controller reconnected with the new mapping.</string>
+    <string name="remap_note_running">Changes are saved as you make them. Tap Apply to reconnect the controller with the new mapping.</string>
+    <string name="remap_note_stopped">Changes are saved and apply the next time merging starts.</string>
+    <string name="remap_restore">Restore defaults</string>
+    <string name="remap_restored">Defaults restored.</string>
+    <string name="remap_remove">Remove</string>
+    <string name="remap_side_left">Left</string>
+    <string name="remap_side_right">Right</string>
+    <string name="remap_entry_label">%1$s · %2$s (%3$d)</string>
+    <string name="remap_output_default">Default</string>
+    <string name="remap_output_unmap">Don’t map</string>
+    <string name="remap_codes_hint">Buttons are identified by the raw code your phone reports, so the list shows code names instead of printed labels. Capture, ZL/ZR and the D-pad can’t be remapped.</string>
+    <string name="remap_out_a" translatable="false">A</string>
+    <string name="remap_out_b" translatable="false">B</string>
+    <string name="remap_out_c" translatable="false">C</string>
+    <string name="remap_out_x" translatable="false">X</string>
+    <string name="remap_out_y" translatable="false">Y</string>
+    <string name="remap_out_l" translatable="false">L</string>
+    <string name="remap_out_r" translatable="false">R</string>
+    <string name="remap_out_select">Select (−)</string>
+    <string name="remap_out_start">Start (+)</string>
+    <string name="remap_out_home">Home</string>
+    <string name="remap_out_l3" translatable="false">L3</string>
+    <string name="remap_out_r3" translatable="false">R3</string>
 
     <!-- Footer -->
     <string name="footer">Version %1$s · Source code and help on GitHub</string>

@@ -1,7 +1,10 @@
 // Creates two uinput devices that mimic hid-nintendo's Joy-Con nodes and
 // plays a fixed input script, for testing the merge engine without hardware:
-//   fakejoy [--prefix NAME_PREFIX] [--wait SECONDS]
+//   fakejoy [--prefix NAME_PREFIX] [--wait SECONDS] [--face A=304,B=308,X=305,Y=307]
 // Devices are named "<prefix> Left Joy-Con" / "<prefix> Right Joy-Con".
+// --face overrides which evdev code each printed face-button label reports;
+// the default is mainline hid-nintendo's convention. Some phone kernels
+// rotate these codes, and --face reproduces that.
 #include <fcntl.h>
 #include <linux/input.h>
 #include <linux/uinput.h>
@@ -76,16 +79,51 @@ static void tap(int fd, int code, const char *label) {
     usleep(150 * 1000);
 }
 
+static void tap_face(int fd, int code, const char *position, int printed) {
+    char buf[80];
+    snprintf(buf, sizeof buf, "%c (%s) reports code %d", printed, position, code);
+    tap(fd, code, buf);
+}
+
+// Parses "A=304,B=308,X=305,Y=307"; every code must be one the fake right
+// Joy-Con advertises. Returns 0 on success.
+static int parse_face(const char *spec, int *a, int *b, int *x, int *y) {
+    char buf[128];
+    snprintf(buf, sizeof buf, "%s", spec);
+    for (char *tok = strtok(buf, ","); tok != NULL; tok = strtok(NULL, ",")) {
+        char label;
+        int code;
+        if (sscanf(tok, " %c=%d", &label, &code) != 2) return -1;
+        size_t i = 0;
+        while (i < ARRAY_LEN(kRightKeys) && kRightKeys[i] != code) i++;
+        if (i == ARRAY_LEN(kRightKeys)) return -1;
+        switch (label) {
+            case 'A': *a = code; break;
+            case 'B': *b = code; break;
+            case 'X': *x = code; break;
+            case 'Y': *y = code; break;
+            default: return -1;
+        }
+    }
+    return 0;
+}
+
 int main(int argc, char **argv) {
     const char *prefix = "Test";
     int wait = 3;
+    int face_a = BTN_EAST, face_b = BTN_SOUTH, face_x = BTN_NORTH, face_y = BTN_WEST;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--prefix") == 0 && i + 1 < argc) {
             prefix = argv[++i];
         } else if (strcmp(argv[i], "--wait") == 0 && i + 1 < argc) {
             wait = atoi(argv[++i]);
+        } else if (strcmp(argv[i], "--face") == 0 && i + 1 < argc) {
+            if (parse_face(argv[++i], &face_a, &face_b, &face_x, &face_y) != 0) {
+                fprintf(stderr, "invalid --face spec; example: A=304,B=308,X=305,Y=307\n");
+                return 2;
+            }
         } else {
-            fprintf(stderr, "usage: %s [--prefix NAME_PREFIX] [--wait SECONDS]\n", argv[0]);
+            fprintf(stderr, "usage: %s [--prefix NAME_PREFIX] [--wait SECONDS] [--face A=304,B=308,X=305,Y=307]\n", argv[0]);
             return 2;
         }
     }
@@ -111,10 +149,10 @@ int main(int argc, char **argv) {
     tap(l, BTN_TR, "Left SL -> (nothing)");
     tap(l, BTN_TR2, "Left SR -> (nothing)");
 
-    tap(r, BTN_EAST, "A (east) -> BTN_EAST [positional]");
-    tap(r, BTN_SOUTH, "B (south) -> BTN_SOUTH [positional]");
-    tap(r, BTN_NORTH, "X (north) -> BTN_Y(308) [positional]");
-    tap(r, BTN_WEST, "Y (west) -> BTN_X(307) [positional]");
+    tap_face(r, face_a, "right", 'A');
+    tap_face(r, face_b, "bottom", 'B');
+    tap_face(r, face_x, "top", 'X');
+    tap_face(r, face_y, "left", 'Y');
     tap(r, BTN_TR, "R -> BTN_TR");
     tap(r, BTN_TR2, "ZR -> BTN_TR2 + ABS_GAS");
     tap(r, BTN_START, "Plus -> BTN_START");
@@ -158,7 +196,7 @@ int main(int argc, char **argv) {
     step("reconnect right Joy-Con, press A");
     r = create(right_name, 0x2007, kRightKeys, ARRAY_LEN(kRightKeys), ABS_RX, ABS_RY);
     sleep(wait);
-    tap(r, BTN_EAST, "A (east) after reconnect -> BTN_EAST");
+    tap_face(r, face_a, "right, after reconnect", 'A');
 
     step("done; removing fake Joy-Cons");
     ioctl(l, UI_DEV_DESTROY);

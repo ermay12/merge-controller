@@ -7,6 +7,7 @@ import java.security.MessageDigest
 /** Engine state reported by [IMergeService.status]. */
 data class MergeStatus(
     val running: Boolean,
+    val flags: Int,
     val virtualPath: String,
     val virtualName: String,
     val xboxIdentity: Boolean,
@@ -50,6 +51,7 @@ data class MergeStatus(
                 }
             return MergeStatus(
                 running = o.getBoolean("running"),
+                flags = o.optInt("flags"),
                 virtualPath = o.optString("virtualPath"),
                 virtualName = o.optString("virtualName"),
                 xboxIdentity = o.optBoolean("xboxIdentity"),
